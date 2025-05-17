@@ -276,16 +276,15 @@ void CPU::Cycle()
     // *** TEMPORARY CODE FOR TESTING INDIVIDUAL OPCODES ***
 
 
-    registerA = 0xFD;
+    registerA = 0xFA;
     registerX = 0x00;
-    registerY = 0xFC;
+    registerY = 0x08;
 
-    memory[0xF000 % 0x2000] = 0xA8;
-    memory[0xF001 % 0x2000] = 0x00;
-    memory[0xF002 % 0x2000] = 0x48;
-    memory[0xF069 % 0x2000] = 0x47;
-    memory[0xF06A % 0x2000] = 0x48;
-    memory[0x4748 % 0x2000] = 0x32;
+    memory[0xF000 % 0x2000] = 0xb1;
+    memory[0xF001 % 0x2000] = 0x6A;
+    memory[0x006A % 0x2000] = 0x70;
+    memory[0x006B % 0x2000] = 0x42;
+    memory[0x704A % 0x2000] = 0x11;
 
 
     // To reset format flags? idfk i forgor
@@ -612,8 +611,8 @@ void CPU::OP_81()
 // STA (nn),Y: Move byte from regiater A into (WORD(nn)+Y). No flags
 void CPU::OP_91()
 {
-    uint16_t address = (memory[memory[programCounter + 1] + registerY] << 8u) + memory[memory[programCounter + 1] + registerY + 1];
-    memory[address % 0x2000] = registerA;
+    uint16_t address = (memory[memory[programCounter + 1]] << 8u) + memory[memory[programCounter + 1] + 1];
+    memory[address + registerY % 0x2000] = registerA;
     programCounter += 2;
 }
 
@@ -725,31 +724,83 @@ void CPU::OP_69()
     programCounter += 2;
 }
 
-// ADC nn: Add [nn] and carry to Accumulator
+// ADC nn: Add [nn] and carry to Accumulator. Flags nzcv
 void CPU::OP_65()
 {
-
+    uint8_t adder = memory[memory[programCounter + 1]] + (processStatusRegister & 0b00000001);
+    uint16_t tempA = registerA + adder;   
+    setCarry(tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 2;
 }
+
+// ADC nn,X: Add [nn+X] and carry to Accumulator. Flags nzcv
 void CPU::OP_75()
 {
-
+    uint8_t adder = memory[memory[programCounter + 1] + registerX] + (processStatusRegister & 0b00000001);
+    uint16_t tempA = registerA + adder;   
+    setCarry(tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 2;
 }
+
+// ADC nnnn: Add [nnnn] and carry to Accumulator. Flags nzcv
 void CPU::OP_6D()
 {
-
+    uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2];
+    uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
+    uint16_t tempA = registerA + adder;   
+    setCarry(tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 3;
 }
+
+// ADC nnnn+X: Add [nnnn+X] and carry to Accumulator. Flags nzcv
 void CPU::OP_7D()
 {
-
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerX;
+    uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
+    uint16_t tempA = registerA + adder;   
+    setCarry(tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 3;
 }
+
+// ADC nnnn+Y: Add [nnnn+Y] and carry to Accumulator. Flags nzcv
 void CPU::OP_79()
 {
-
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerY;
+    uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
+    uint16_t tempA = registerA + adder;   
+    setCarry(tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 3;
 }
+
+// ADC [[nn+X]]: Add [word[nn+X]] and carry to Accumulator. Flags nzcv
 void CPU::OP_61()
 {
-
+    uint16_t address = (memory[memory[programCounter + 1] + registerX] << 8u) + memory[memory[programCounter + 1] + registerX + 1];
+    uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
+    uint16_t tempA = registerA + adder;   
+    setCarry(tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 2;
 }
+
+// ADC [[nn]+Y]: Add [word[nn]+Y] and carry to Accumulator. Flags nzcv
 void CPU::OP_71()
 {
 
