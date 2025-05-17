@@ -803,7 +803,14 @@ void CPU::OP_61()
 // ADC [[nn]+Y]: Add [word[nn]+Y] and carry to Accumulator. Flags nzcv
 void CPU::OP_71()
 {
-
+    uint16_t address = (memory[memory[programCounter + 1]] << 8u) + memory[memory[programCounter + 1] + 1];
+    uint8_t adder = memory[address + registerY] + (processStatusRegister & 0b00000001);
+    uint16_t tempA = registerA + adder;   
+    setCarry(tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 2;
 }
 
 // Subtract memory from accumulator with borrow
