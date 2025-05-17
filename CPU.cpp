@@ -276,15 +276,15 @@ void CPU::Cycle()
     // *** TEMPORARY CODE FOR TESTING INDIVIDUAL OPCODES ***
 
 
-    registerA = 0xFA;
-    registerX = 0x00;
-    registerY = 0x08;
+    registerA = 0xA0;
+    registerX = 0x02;
+    registerY = 0x02;
 
-    memory[0xF000 % 0x2000] = 0xb1;
-    memory[0xF001 % 0x2000] = 0x6A;
-    memory[0x006A % 0x2000] = 0x70;
-    memory[0x006B % 0x2000] = 0x42;
-    memory[0x704A % 0x2000] = 0x11;
+    memory[0xF000 % 0x2000] = 0x71;
+    memory[0xF001 % 0x2000] = 0x77;
+    memory[0x0077 % 0x2000] = 0x12;
+    memory[0x0078 % 0x2000] = 0x37;
+    memory[0x1239 % 0x2000] = 0x05;
 
 
     // To reset format flags? idfk i forgor
@@ -391,16 +391,13 @@ void CPU::OP_8A()
     registerA = registerX;
     setNZ(registerA);
     ++programCounter;
-
 }
 
 // TXS: Move Register X into the Stack Pointer. No Flags
 void CPU::OP_9A()
 {
     stackPointer = registerX;
-
     ++programCounter;
-
 }
 
 // LDA #nn: Load next byte into Register A. Flags NZ
@@ -705,8 +702,6 @@ void CPU::OP_28()
 }
 
 
-// TESTED TO HERE *************************
-
 
 // CPU Arithmetic/Logical Operations
 
@@ -764,7 +759,7 @@ void CPU::OP_6D()
 // ADC nnnn+X: Add [nnnn+X] and carry to Accumulator. Flags nzcv
 void CPU::OP_7D()
 {
-    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerX;
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2] + registerX);
     uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
     uint16_t tempA = registerA + adder;   
     setCarry(tempA);
@@ -812,6 +807,8 @@ void CPU::OP_71()
     setNZ(registerA);
     programCounter += 2;
 }
+
+// TESTED TO HERE *************************
 
 // Subtract memory from accumulator with borrow
 void CPU::OP_E9(){}
@@ -1012,7 +1009,7 @@ void CPU::setCarry(uint16_t &tempRegister)
 void CPU::setOverflow(uint8_t &reg, uint8_t &adderValue, uint16_t &tempRegister)
 {
 
-    if((registerA & 0b10000000 == adderValue & 0b10000000) && ((registerA & 0b10000000) != (tempRegister & 0b10000000)))
+    if(((reg & 0b10000000) == (adderValue & 0b10000000)) && ((reg & 0b10000000) != (tempRegister & 0b10000000)))
     {
         processStatusRegister = processStatusRegister | 0b01000000;
     }
