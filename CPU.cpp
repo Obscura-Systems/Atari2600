@@ -275,13 +275,14 @@ void CPU::Cycle()
 
     // *** TEMPORARY CODE FOR TESTING INDIVIDUAL OPCODES ***
 
+    processStatusRegister = 0b00100000;
 
-    registerA = 0xA0;
+    registerA = 0x09;
     registerX = 0x02;
     registerY = 0x02;
 
-    memory[0xF000 % 0x2000] = 0x71;
-    memory[0xF001 % 0x2000] = 0x77;
+    memory[0xF000 % 0x2000] = 0xE9;
+    memory[0xF001 % 0x2000] = 0x08;
     memory[0x0077 % 0x2000] = 0x12;
     memory[0x0078 % 0x2000] = 0x37;
     memory[0x1239 % 0x2000] = 0x05;
@@ -711,8 +712,8 @@ void CPU::OP_28()
 void CPU::OP_69()
 {
     uint8_t adder = memory[programCounter + 1] + (processStatusRegister & 0b00000001);
-    uint16_t tempA = registerA + adder;   
-    setCarry(tempA);
+    uint8_t tempA = registerA + adder;   
+    setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
     setNZ(registerA);
@@ -723,8 +724,8 @@ void CPU::OP_69()
 void CPU::OP_65()
 {
     uint8_t adder = memory[memory[programCounter + 1]] + (processStatusRegister & 0b00000001);
-    uint16_t tempA = registerA + adder;   
-    setCarry(tempA);
+    uint8_t tempA = registerA + adder;   
+    setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
     setNZ(registerA);
@@ -735,8 +736,8 @@ void CPU::OP_65()
 void CPU::OP_75()
 {
     uint8_t adder = memory[memory[programCounter + 1] + registerX] + (processStatusRegister & 0b00000001);
-    uint16_t tempA = registerA + adder;   
-    setCarry(tempA);
+    uint8_t tempA = registerA + adder;   
+    setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
     setNZ(registerA);
@@ -748,8 +749,8 @@ void CPU::OP_6D()
 {
     uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2];
     uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
-    uint16_t tempA = registerA + adder;   
-    setCarry(tempA);
+    uint8_t tempA = registerA + adder;   
+    setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
     setNZ(registerA);
@@ -761,8 +762,8 @@ void CPU::OP_7D()
 {
     uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2] + registerX);
     uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
-    uint16_t tempA = registerA + adder;   
-    setCarry(tempA);
+    uint8_t tempA = registerA + adder;   
+    setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
     setNZ(registerA);
@@ -774,8 +775,8 @@ void CPU::OP_79()
 {
     uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerY;
     uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
-    uint16_t tempA = registerA + adder;   
-    setCarry(tempA);
+    uint8_t tempA = registerA + adder;   
+    setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
     setNZ(registerA);
@@ -787,8 +788,8 @@ void CPU::OP_61()
 {
     uint16_t address = (memory[memory[programCounter + 1] + registerX] << 8u) + memory[memory[programCounter + 1] + registerX + 1];
     uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
-    uint16_t tempA = registerA + adder;   
-    setCarry(tempA);
+    uint8_t tempA = registerA + adder;   
+    setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
     setNZ(registerA);
@@ -800,8 +801,8 @@ void CPU::OP_71()
 {
     uint16_t address = (memory[memory[programCounter + 1]] << 8u) + memory[memory[programCounter + 1] + 1];
     uint8_t adder = memory[address + registerY] + (processStatusRegister & 0b00000001);
-    uint16_t tempA = registerA + adder;   
-    setCarry(tempA);
+    uint8_t tempA = registerA + adder;   
+    setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
     setNZ(registerA);
@@ -811,24 +812,173 @@ void CPU::OP_71()
 // TESTED TO HERE *************************
 
 // Subtract memory from accumulator with borrow
-void CPU::OP_E9(){}
-void CPU::OP_E5(){}
-void CPU::OP_F5(){}
-void CPU::OP_ED(){}
-void CPU::OP_FD(){}
-void CPU::OP_F9(){}
-void CPU::OP_E1(){}
-void CPU::OP_F1(){}
+
+// SBC #nn: Add carry to Accumulator then subtract 1 and #nn. Flags nzcv
+void CPU::OP_E9()
+{
+    uint8_t adder = memory[programCounter + 1] + 1;
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - adder;   
+    setCarry(registerA, tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 2;
+}
+
+// SBC [nn]: Add carry to Accumulator then subtract 1 and [nn]. Flags nzcv
+void CPU::OP_E5()
+{
+    uint8_t adder = memory[memory[programCounter + 1]];
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    setCarry(registerA, tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 2;
+}
+
+// SBC [nn+X]: Add carry to Accumulator then subtract 1 and [nn+X]. Flags nzcv
+void CPU::OP_F5()
+{
+    uint8_t adder = memory[memory[programCounter + 1] + registerX];
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    setCarry(registerA, tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 2;
+}
+
+// SBC [nnnn]: Add carry to Accumulator then subtract 1 and [nnnn]. Flags nzcv
+void CPU::OP_ED()
+{
+    uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2];
+    uint8_t adder = memory[address];
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    setCarry(registerA, tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 3;
+}
+
+// SBC [nnnn+X]: Add carry to Accumulator then subtract 1 and [nnnn+X]. Flags nzcv
+void CPU::OP_FD()
+{
+    uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2] + registerX;
+    uint8_t adder = memory[address];
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    setCarry(registerA, tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 3;
+}
+
+// SBC [nnnn+Y]: Add carry to Accumulator then subtract 1 and [nnnn+Y]. Flags nzcv
+void CPU::OP_F9()
+{
+    uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2] + registerY;
+    uint8_t adder = memory[address];
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    setCarry(registerA, tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 3;
+}
+
+// SBC [word[nn+X]]: Add carry to Accumulator then subtract 1 and [word[nn+X]]. Flags nzcv
+void CPU::OP_E1()
+{
+    uint16_t address = (memory[memory[programCounter + 1] + registerX] << 8u) + memory[memory[programCounter + 1] + registerX + 1];
+    uint8_t adder = memory[address];
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    setCarry(registerA, tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 3;
+}
+
+// SBC [word[nn]+Y]: Add carry to Accumulator then subtract 1 and [word[nn]+Y]. Flags nzcv
+void CPU::OP_F1()
+{
+    uint16_t address = (memory[memory[programCounter + 1]] << 8u) + memory[memory[programCounter + 1]+ 1];
+    uint8_t adder = memory[address + registerY];
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    setCarry(registerA, tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 3;
+}
 
 // Logical AND memory with accumulator
-void CPU::OP_29(){}
-void CPU::OP_25(){}
-void CPU::OP_35(){}
-void CPU::OP_2D(){}
-void CPU::OP_3D(){}
-void CPU::OP_39(){}
-void CPU::OP_21(){}
-void CPU::OP_31(){}
+
+// AND #nn: A = A AND #nn. Flags nz
+void CPU::OP_29()
+{
+    registerA = registerA & memory[programCounter + 1];
+    setNZ(registerA);
+    programCounter += 2;
+}
+
+// AND [nn]: A = A AND [nn]. Flags nz
+void CPU::OP_25()
+{
+    registerA = registerA & memory[memory[programCounter + 1]];
+    setNZ(registerA);
+    programCounter += 2;
+}
+
+// AND [nn+X]: A = A AND [nn+X]. Flags nz
+void CPU::OP_35()
+{
+    registerA = registerA & memory[memory[programCounter + 1] + registerX];
+    setNZ(registerA);
+    programCounter += 2;
+}
+
+// AND [nnnn]: A = A AND [nnnn]. Flags nz
+void CPU::OP_2D()
+{
+    registerA = registerA & memory[((memory[programCounter + 1] << 8u) + memory[programCounter + 2])];
+    setNZ(registerA);
+    programCounter += 3;
+}
+
+// AND [nnnn+X]: A = A AND [nnnn+X]. Flags nz
+void CPU::OP_3D()
+{
+    registerA = registerA & memory[((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerX];
+    setNZ(registerA);
+    programCounter += 3;
+}
+
+// AND [nnnn+Y]: A = A AND [nnnn+Y]. Flags nz
+void CPU::OP_39()
+{
+    registerA = registerA & memory[((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerY];
+    setNZ(registerA);
+    programCounter += 3;
+}
+
+// AND [word[nn+X]]: A = A AND [word[nn+X]]. Flags nz
+void CPU::OP_21()
+{
+    registerA = registerA & memory[((memory[memory[programCounter + 1] + registerX] << 8u) + memory[memory[programCounter + 1] + registerX + 1])];
+    setNZ(registerA);
+    programCounter += 3;
+}
+
+// AND [word[nn]+Y]: A = A AND [word[nn]+Y]. Flags nz
+void CPU::OP_31()
+{
+    registerA = registerA & memory[((memory[memory[programCounter + 1]] << 8u) + memory[memory[programCounter + 1]+ 1]) + registerY];
+    setNZ(registerA);
+    programCounter += 3;
+}
 
 // Exclusive-OR memory with accumulator
 void CPU::OP_49(){}
@@ -999,14 +1149,17 @@ void CPU::OP_9E(){}
 void CPU::OP_9B(){}
 
 // Clear and set carry bit
-void CPU::setCarry(uint16_t &tempRegister)
+void CPU::setCarry(uint8_t &reg, uint8_t &tempRegister)
 {
     processStatusRegister = processStatusRegister & 0b11111110;
-    processStatusRegister = processStatusRegister | (tempRegister >> 8u);
+    if(tempRegister < reg)
+    {
+        processStatusRegister = processStatusRegister | 0b00000001;
+    }
 }
 
 // Clear and set overflow bit
-void CPU::setOverflow(uint8_t &reg, uint8_t &adderValue, uint16_t &tempRegister)
+void CPU::setOverflow(uint8_t &reg, uint8_t &adderValue, uint8_t &tempRegister)
 {
 
     if(((reg & 0b10000000) == (adderValue & 0b10000000)) && ((reg & 0b10000000) != (tempRegister & 0b10000000)))
