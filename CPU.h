@@ -296,5 +296,12 @@ private:
     typedef void (CPU::*CPUFunc)();
     CPUFunc opList[0xFF + 1];
 
+    void setCarry(uint16_t &tempRegister);
+
+    void setOverflow(uint8_t &reg, uint8_t &adderValue, uint16_t &tempRegister);
+
+    void setNZ(uint8_t &reg);
+
+
 };
 

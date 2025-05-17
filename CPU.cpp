@@ -276,12 +276,12 @@ void CPU::Cycle()
     // *** TEMPORARY CODE FOR TESTING INDIVIDUAL OPCODES ***
 
 
-    registerA = 0xFA;
-    registerX = 0x01;
+    registerA = 0xFD;
+    registerX = 0x00;
     registerY = 0xFC;
 
-    memory[0xF000 % 0x2000] = 0x8E;
-    memory[0xF001 % 0x2000] = 0x47;
+    memory[0xF000 % 0x2000] = 0xA8;
+    memory[0xF001 % 0x2000] = 0x00;
     memory[0xF002 % 0x2000] = 0x48;
     memory[0xF069 % 0x2000] = 0x47;
     memory[0xF06A % 0x2000] = 0x48;
@@ -358,19 +358,7 @@ void CPU::OP_NULL()
 void CPU::OP_A8() 
 {                          
     registerY = registerA;
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerY == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerY & 0b10000000);
-
+    setNZ(registerY);
     ++programCounter;
 }
 
@@ -378,19 +366,7 @@ void CPU::OP_A8()
 void CPU::OP_AA()                           
 {
     registerX = registerA;
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerX == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerX & 0b10000000);
-
+    setNZ(registerX);
     ++programCounter;
 }
 
@@ -398,19 +374,7 @@ void CPU::OP_AA()
 void CPU::OP_BA()
 {
     registerX = stackPointer;
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerX == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerX & 0b10000000);
-
+    setNZ(registerX);
     ++programCounter;
 }
 
@@ -418,19 +382,7 @@ void CPU::OP_BA()
 void CPU::OP_98()
 {
     registerA = registerY;
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
+    setNZ(registerA);
     ++programCounter;
 }
 
@@ -438,19 +390,7 @@ void CPU::OP_98()
 void CPU::OP_8A()
 {
     registerA = registerX;
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
+    setNZ(registerA);
     ++programCounter;
 
 }
@@ -468,19 +408,7 @@ void CPU::OP_9A()
 void CPU::OP_A9()
 {
     registerA = memory[programCounter + 1];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
+    setNZ(registerA);
     programCounter += 2;
 }
 
@@ -488,19 +416,7 @@ void CPU::OP_A9()
 void CPU::OP_A2()
 {
     registerX = memory[programCounter + 1];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerX == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerX & 0b10000000);
-
+    setNZ(registerX);
     programCounter += 2;
 }
 
@@ -508,19 +424,7 @@ void CPU::OP_A2()
 void CPU::OP_A0()
 {
     registerY = memory[programCounter + 1];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerY == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerY & 0b10000000);
-
+    setNZ(registerY);
     programCounter += 2;
 }
 
@@ -531,19 +435,7 @@ void CPU::OP_A0()
 void CPU::OP_A5()
 {
     registerA = memory[memory[programCounter + 1]];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
+    setNZ(registerA);
     programCounter += 2;
 }
 
@@ -551,19 +443,7 @@ void CPU::OP_A5()
 void CPU::OP_B5()
 {
     registerA = memory[memory[programCounter + 1] + registerX];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
+    setNZ(registerA);
     programCounter += 2;
 }
 
@@ -572,19 +452,7 @@ void CPU::OP_AD()
 {
     uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2];
     registerA = memory[address % 0x2000];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
+    setNZ(registerA);
     programCounter += 3;
 }
 
@@ -593,19 +461,7 @@ void CPU::OP_BD()
 {
     uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2] + registerX;
     registerA = memory[address % 0x2000];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
+    setNZ(registerA);
     programCounter += 3;
 }
 
@@ -614,19 +470,7 @@ void CPU::OP_B9()
 {
     uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2] + registerY;
     registerA = memory[address % 0x2000];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
+    setNZ(registerA);
     programCounter += 3;
 }
 
@@ -635,19 +479,7 @@ void CPU::OP_A1()
 {
     uint16_t address = (memory[memory[programCounter + 1] + registerX] << 8u) + memory[memory[programCounter + 1] + registerX + 1];
     registerA = memory[address % 0x2000];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
+    setNZ(registerA);
     programCounter += 2;
 }
 
@@ -656,19 +488,7 @@ void CPU::OP_B1()
 {
     uint16_t address = (memory[memory[programCounter + 1]] << 8u) + memory[memory[programCounter + 1] + 1];
     registerA = memory[(address + registerY) % 0x2000];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
+    setNZ(registerA);
     programCounter += 2;
 }
 
@@ -676,19 +496,7 @@ void CPU::OP_B1()
 void CPU::OP_A6()
 {
     registerX = memory[memory[programCounter + 1]];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerX == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerX & 0b10000000);
-
+    setNZ(registerX);
     programCounter += 2;
 }
 
@@ -696,19 +504,7 @@ void CPU::OP_A6()
 void CPU::OP_B6()
 {
     registerX = memory[memory[programCounter + 1] + registerY];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerX == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerX & 0b10000000);
-
+    setNZ(registerX);
     programCounter += 2;
 }
 
@@ -717,19 +513,7 @@ void CPU::OP_AE()
 {
     uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2];
     registerX = memory[address % 0x2000];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerX == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerX & 0b10000000);
-
+    setNZ(registerX);
     programCounter += 3;
 }
 
@@ -738,19 +522,7 @@ void CPU::OP_BE()
 {
     uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerY;
     registerX = memory[address % 0x2000];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerX == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerX & 0b10000000);
-
+    setNZ(registerX);
     programCounter += 3;
 }
 
@@ -758,19 +530,7 @@ void CPU::OP_BE()
 void CPU::OP_A4()
 {
     registerY = memory[memory[programCounter + 1]];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerY == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerY & 0b10000000);
-
+    setNZ(registerY);
     programCounter += 2;
 }
 
@@ -778,19 +538,7 @@ void CPU::OP_A4()
 void CPU::OP_B4()
 {
     registerY = memory[memory[programCounter + 1] + registerX];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerY == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerY & 0b10000000);
-
+    setNZ(registerY);
     programCounter += 2;
 }
 
@@ -799,19 +547,7 @@ void CPU::OP_AC()
 {
     uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2];
     registerY = memory[address % 0x2000];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerY == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerY & 0b10000000);
-
+    setNZ(registerY);
     programCounter += 3;
 }
 
@@ -820,19 +556,7 @@ void CPU::OP_BC()
 {
     uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerX;
     registerY = memory[address % 0x2000];
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerY == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerY & 0b10000000);
-
+    setNZ(registerY);
     programCounter += 3;
 }
 
@@ -843,7 +567,6 @@ void CPU::OP_BC()
 void CPU::OP_85()
 {
     memory[memory[programCounter + 1]] = registerA;
-
     programCounter += 2;
 }
 
@@ -851,7 +574,6 @@ void CPU::OP_85()
 void CPU::OP_95()
 {
     memory[memory[programCounter + 1] + registerX] = registerA;
-
     programCounter += 2;
 }
 
@@ -860,7 +582,6 @@ void CPU::OP_8D()
 {
     uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2];
     memory[address % 0x2000] = registerA;
-    
     programCounter += 3;
 }
 
@@ -869,7 +590,6 @@ void CPU::OP_9D()
 {
     uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerX;
     memory[address % 0x2000] = registerA;
-    
     programCounter += 3;
 }
 
@@ -878,7 +598,6 @@ void CPU::OP_99()
 {
     uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerY;
     memory[address % 0x2000] = registerA;
-    
     programCounter += 3;
 }
 
@@ -887,7 +606,6 @@ void CPU::OP_81()
 {
     uint16_t address = (memory[memory[programCounter + 1] + registerX] << 8u) + memory[memory[programCounter + 1] + registerX + 1];
     memory[address % 0x2000] = registerA;
-
     programCounter += 2;
 }
 
@@ -896,7 +614,6 @@ void CPU::OP_91()
 {
     uint16_t address = (memory[memory[programCounter + 1] + registerY] << 8u) + memory[memory[programCounter + 1] + registerY + 1];
     memory[address % 0x2000] = registerA;
-
     programCounter += 2;
 }
 
@@ -904,7 +621,6 @@ void CPU::OP_91()
 void CPU::OP_86()
 {
     memory[memory[programCounter + 1]] = registerX;
-
     programCounter += 2;
 }
 
@@ -912,7 +628,6 @@ void CPU::OP_86()
 void CPU::OP_96()
 {
     memory[memory[programCounter + 1] + registerY] = registerX;
-
     programCounter += 2;
 }
 
@@ -921,7 +636,6 @@ void CPU::OP_8E()
 {
     uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2];
     memory[address % 0x2000] = registerX;
-    
     programCounter += 3;
 }
 
@@ -929,7 +643,6 @@ void CPU::OP_8E()
 void CPU::OP_84()
 {
     memory[memory[programCounter + 1]] = registerY;
-
     programCounter += 2;
 }
 
@@ -937,7 +650,6 @@ void CPU::OP_84()
 void CPU::OP_94()
 {
     memory[memory[programCounter + 1] + registerX] = registerY;
-
     programCounter += 2;
 }
 
@@ -946,7 +658,6 @@ void CPU::OP_8C()
 {
     uint16_t address = (memory[programCounter + 1] << 8u) + memory[programCounter + 2];
     memory[address % 0x2000] = registerY;
-    
     programCounter += 3;
 }
 
@@ -958,9 +669,8 @@ void CPU::OP_48()
 {
     uint16_t address = stackPointer + 0x0100;
     memory[address % 0x2000] = registerA;
-
-    stackPointer -= 1;
-    programCounter += 1;
+    --stackPointer;
+    ++programCounter;
 }
 
 // PHP: Push P. Writes 1 to B and unused flags.
@@ -969,46 +679,30 @@ void CPU::OP_08()
     uint16_t address = stackPointer + 0x0100;
     memory[address % 0x2000] = processStatusRegister;
     processStatusRegister = processStatusRegister | 0b00110000;
-
-    stackPointer -= 1;
-    programCounter += 1;
+    --stackPointer;
+    ++programCounter;
 }
 
 // PLA: Pop A. Flags NZ
 void CPU::OP_68()
 {
-    stackPointer += 1;
+    ++stackPointer;
     uint16_t address = stackPointer + 0x0100;
     registerA = memory[address % 0x2000];
-
-    // If destination equals 0 set zero bit, otherwise clear it
-    if (registerA == 0)
-    {
-        processStatusRegister = processStatusRegister | 0b00000010;
-    }
-    else
-    {
-        processStatusRegister = processStatusRegister & 0b11111101;
-    }
-    // Set negative bit equal to destinations most significant bit
-    processStatusRegister = processStatusRegister & 0b01111111;
-    processStatusRegister = processStatusRegister | (registerA & 0b10000000);
-
-    programCounter += 1;
+    setNZ(registerA);
+    ++programCounter;
 }
 
 // PLP: Pop P. PLP cannot change B or unused flags.
 void CPU::OP_28()
 {
-    stackPointer += 1;
+    ++stackPointer;
     uint16_t address = stackPointer + 0x0100;
-
     // Mask both registers and then or them to ensure B and unused do not change.
     uint8_t maskedProcessRegister = processStatusRegister & 0b00110000;
     uint8_t maskedMemory = memory[address % 0x2000] & 0b11001111;
     processStatusRegister = maskedProcessRegister | maskedMemory;
-
-    programCounter += 1;    
+    ++programCounter;    
 }
 
 
@@ -1018,14 +712,48 @@ void CPU::OP_28()
 // CPU Arithmetic/Logical Operations
 
 // Add memory to accumulator with carry
-void CPU::OP_69(){}
-void CPU::OP_65(){}
-void CPU::OP_75(){}
-void CPU::OP_6D(){}
-void CPU::OP_7D(){}
-void CPU::OP_79(){}
-void CPU::OP_61(){}
-void CPU::OP_71(){}
+
+// ADC #nn: Add nn and Carry to Accumulator. Flags nzcv
+void CPU::OP_69()
+{
+    uint8_t adder = memory[programCounter + 1] + (processStatusRegister & 0b00000001);
+    uint16_t tempA = registerA + adder;   
+    setCarry(tempA);
+    setOverflow(registerA, adder, tempA);
+    registerA = tempA & 0xFF;
+    setNZ(registerA);
+    programCounter += 2;
+}
+
+// ADC nn: Add [nn] and carry to Accumulator
+void CPU::OP_65()
+{
+
+}
+void CPU::OP_75()
+{
+
+}
+void CPU::OP_6D()
+{
+
+}
+void CPU::OP_7D()
+{
+
+}
+void CPU::OP_79()
+{
+
+}
+void CPU::OP_61()
+{
+
+}
+void CPU::OP_71()
+{
+
+}
 
 // Subtract memory from accumulator with borrow
 void CPU::OP_E9(){}
@@ -1214,3 +942,42 @@ void CPU::OP_9F(){}
 void CPU::OP_9C(){}
 void CPU::OP_9E(){}
 void CPU::OP_9B(){}
+
+// Clear and set carry bit
+void CPU::setCarry(uint16_t &tempRegister)
+{
+    processStatusRegister = processStatusRegister & 0b11111110;
+    processStatusRegister = processStatusRegister | (tempRegister >> 8u);
+}
+
+// Clear and set overflow bit
+void CPU::setOverflow(uint8_t &reg, uint8_t &adderValue, uint16_t &tempRegister)
+{
+
+    if((registerA & 0b10000000 == adderValue & 0b10000000) && ((registerA & 0b10000000) != (tempRegister & 0b10000000)))
+    {
+        processStatusRegister = processStatusRegister | 0b01000000;
+    }
+    else
+    {
+        processStatusRegister = processStatusRegister & 0b10111111;
+    }
+}
+
+void CPU::setNZ(uint8_t &reg)
+{
+    // If destination equals 0 set zero bit, otherwise clear it
+    if (reg == 0)
+    {
+        processStatusRegister = processStatusRegister | 0b00000010;
+    }  
+    else
+    {
+        processStatusRegister = processStatusRegister & 0b11111101;
+    }
+
+    // Set negative bit equal to destinations most significant bit
+    processStatusRegister = processStatusRegister & 0b01111111;
+    processStatusRegister = processStatusRegister | (reg & 0b10000000);
+}
+
