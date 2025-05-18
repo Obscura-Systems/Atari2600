@@ -1383,32 +1383,240 @@ void CPU::OP_88()
 // CPU Rotate and Shift instructions
 
 // Shift Left Logical/Arithmetic
-void CPU::OP_0A(){}
-void CPU::OP_06(){}
-void CPU::OP_16(){}
-void CPU::OP_0E(){}
-void CPU::OP_1E(){}
+
+// SHL A: Shift left A. Flags NCZ
+void CPU::OP_0A()
+{
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= ((registerA &= 0b10000000) >> 7u);
+    registerA <<= 1u;
+    setNZ(registerA);
+    ++programCounter;
+}
+
+// SHL [nn]: Shift left [nn]. Flags NCZ
+void CPU::OP_06()
+{
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= ((memory[programCounter + 1] &= 0b10000000) >> 7u);
+    memory[programCounter + 1] <<= 1u;
+    setNZ(memory[programCounter + 1]);
+    programCounter += 2;
+}
+
+// SHL [nn+X]: Shift left [nn+X]. Flags NCZ
+void CPU::OP_16()
+{
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= ((memory[programCounter + 1 + registerX] &= 0b10000000) >> 7u);
+    memory[programCounter + 1 + registerX] <<= 1u;
+    setNZ(memory[programCounter + 1 + registerX]);
+    programCounter += 2;
+}
+
+// SHL [nnnn]: Shift left [nnnn]. Flags NCZ
+void CPU::OP_0E()
+{
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) % 0x2000;
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= ((memory[address] &= 0b10000000) >> 7u);
+    memory[address] <<= 1u;
+    setNZ(memory[address]);
+    programCounter += 3;
+}
+
+// SHL [nnnn+X]: Shift left [nnnn+X]. Flags NCZ
+void CPU::OP_1E()
+{
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2] + registerX) % 0x2000;
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= ((memory[address] &= 0b10000000) >> 7u);
+    memory[address] <<= 1u;
+    setNZ(memory[address]);
+    programCounter += 3;
+}
 
 // Shift Right Logical
-void CPU::OP_4A(){}
-void CPU::OP_46(){}
-void CPU::OP_56(){}
-void CPU::OP_4E(){}
-void CPU::OP_5E(){}
+
+// SHR A: Shift right A. Flags NCZ
+void CPU::OP_4A()
+{
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= (registerA &= 0b00000001);
+    registerA >>= 1u;
+    setNZ(registerA);
+    ++programCounter;
+}
+
+// SHR [nn]: Shift right [nn]. Flags NCZ
+void CPU::OP_46()
+{
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= (memory[programCounter + 1] &= 0b00000001);
+    memory[programCounter + 1] >>= 1u;
+    setNZ(memory[programCounter + 1]);
+    programCounter += 2;
+}
+
+// SHR [nn+X]: Shift right [nn+X]. Flags NCZ
+void CPU::OP_56()
+{
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= (memory[programCounter + 1 + registerX] &= 0b00000001);
+    memory[programCounter + 1 + registerX] >>= 1u;
+    setNZ(memory[programCounter + 1 + registerX]);
+    programCounter += 2;
+}
+
+// SHR [nnnn]: Shift right [nnnn]. Flags NCZ
+void CPU::OP_4E()
+{
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) % 0x2000;
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= (memory[address] &= 0b00000001);
+    memory[address] >>= 1u;
+    setNZ(memory[address]);
+    programCounter += 3;
+}
+
+// SHR [nnnn+X]: Shift right [nnnn+X]. Flags NCZ
+void CPU::OP_5E()
+{
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2] + registerX) % 0x2000;
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= (memory[address] &= 0b00000001);
+    memory[address] >>= 1u;
+    setNZ(memory[address]);
+    programCounter += 3;
+}
 
 // Rotate Left through Carry
-void CPU::OP_2A(){}
-void CPU::OP_26(){}
-void CPU::OP_36(){}
-void CPU::OP_2E(){}
-void CPU::OP_3E(){}
+
+// RCL A: Rotate A Left Through Carry. Flags NZC
+void CPU::OP_2A()
+{
+    uint8_t storeCarry = (processStatusRegister & 0b00000001);
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= ((registerA &= 0b10000000) >> 7u);
+    registerA <<= 1u;
+    registerA |= storeCarry;
+    setNZ(registerA);
+    ++programCounter;
+}
+
+// RCL [nn]: Rotate [nn] Left Through Carry. Flags NZC
+void CPU::OP_26()
+{
+    uint8_t storeCarry = (processStatusRegister & 0b00000001);
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= ((memory[programCounter + 1] &= 0b10000000) >> 7u);
+    memory[programCounter + 1] <<= 1u;
+    registerA |= storeCarry;
+    setNZ(memory[programCounter + 1]);
+    programCounter += 2;
+}
+
+// RCL [nn+X]: Rotate [nn+X] Left Through Carry. Flags NZC
+void CPU::OP_36()
+{
+    uint8_t storeCarry = (processStatusRegister & 0b00000001);
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= ((memory[programCounter + 1 + registerX] &= 0b10000000) >> 7u);
+    memory[programCounter + 1 + registerX] <<= 1u;
+    registerA |= storeCarry;
+    setNZ(memory[programCounter + 1 + registerX]);
+    programCounter += 2;
+}
+
+// RCL [nnnn]: Rotate [nnnn] Left Through Carry. Flags NZC
+void CPU::OP_2E()
+{
+    uint8_t storeCarry = (processStatusRegister & 0b00000001);
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) % 0x2000;
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= ((memory[address] &= 0b10000000) >> 7u);
+    memory[address] <<= 1u;
+    registerA |= storeCarry;
+    setNZ(memory[address]);
+    programCounter += 3;
+}
+
+// RCL [nnnn+X]: Rotate [nnnn+X] Left Through Carry. Flags NZC
+void CPU::OP_3E()
+{
+    uint8_t storeCarry = (processStatusRegister & 0b00000001);
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2] + registerX) % 0x2000;
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= ((memory[address] &= 0b10000000) >> 7u);
+    memory[address] <<= 1u;
+    registerA |= storeCarry;
+    setNZ(memory[address]);
+    programCounter += 3;
+}
 
 // Rotate Right Through Carry
-void CPU::OP_6A(){}
-void CPU::OP_66(){}
-void CPU::OP_76(){}
-void CPU::OP_6E(){}
-void CPU::OP_7E(){}
+
+// RCR A: Rotate A Right Through Carry. Flags NZC
+void CPU::OP_6A()
+{
+    uint8_t storeCarry = (processStatusRegister & 0b00000001);
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= (registerA &= 0b00000001);
+    registerA >>= 1u;
+    registerA |= (storeCarry << 7u);
+    setNZ(registerA);
+    ++programCounter;
+}
+
+// RCR [nn]: Rotate [nn] Right Through Carry. Flags NZC
+void CPU::OP_66()
+{
+    uint8_t storeCarry = (processStatusRegister & 0b00000001);
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= (memory[programCounter + 1] &= 0b00000001);
+    memory[programCounter + 1] >>= 1u;
+    registerA |= (storeCarry << 7u);
+    setNZ(memory[programCounter + 1]);
+    programCounter += 2;
+}
+
+// RCR [nn+X]: Rotate [nn+X] Right Through Carry. Flags NZC
+void CPU::OP_76()
+{
+    uint8_t storeCarry = (processStatusRegister & 0b00000001);
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= (memory[programCounter + 1 + registerX] &= 0b00000001);
+    memory[programCounter + 1 + registerX] >>= 1u;
+    registerA |= (storeCarry << 7u);
+    setNZ(memory[programCounter + 1 + registerX]);
+    programCounter += 2;
+}
+
+// RCR [nnnn]: Rotate [nnnn] Right Through Carry. Flags NZC
+void CPU::OP_6E()
+{
+    uint8_t storeCarry = (processStatusRegister & 0b00000001);
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) % 0x2000;
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= (memory[address] &= 0b00000001);
+    memory[address] >>= 1u;
+    registerA |= (storeCarry << 7u);
+    setNZ(memory[address]);
+    programCounter += 3;
+}
+
+// RCR [nnnn+X]: Rotate [nnnn+X] Right Through Carry. Flags NZC
+void CPU::OP_7E()
+{
+    uint8_t storeCarry = (processStatusRegister & 0b00000001);
+    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2] + registerX) % 0x2000;
+    processStatusRegister &= 0b11111110;
+    processStatusRegister |= (memory[address] &= 0b00000001);
+    memory[address] >>= 1u;
+    registerA |= (storeCarry << 7u);
+    setNZ(memory[address]);
+    programCounter += 3;
+}
 
 
 // CPU Jump and Control Instructions
@@ -1504,28 +1712,21 @@ inline void CPU::setCarry(uint8_t &reg, uint8_t &tempRegister)
 // Clear and set overflow bit
 inline void CPU::setOverflow(uint8_t &reg, uint8_t &adderValue, uint8_t &tempRegister)
 {
-
+    processStatusRegister &= 0b10111111;
     if(((reg & 0b10000000) == (adderValue & 0b10000000)) && ((reg & 0b10000000) != (tempRegister & 0b10000000)))
     {
         processStatusRegister |= 0b01000000;
-    }
-    else
-    {
-        processStatusRegister &= 0b10111111;
     }
 }
 
 inline void CPU::setNZ(uint8_t &reg)
 {
     // If destination equals 0 set zero bit, otherwise clear it
+    processStatusRegister &= 0b11111101;
     if (reg == 0)
     {
         processStatusRegister |= 0b00000010;
     }  
-    else
-    {
-        processStatusRegister &= 0b11111101;
-    }
 
     // Set negative bit equal to destinations most significant bit
     processStatusRegister &= 0b01111111;
