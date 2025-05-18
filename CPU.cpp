@@ -939,7 +939,7 @@ void CPU::OP_35()
 // AND [nnnn]: A = A AND [nnnn]. Flags nz
 void CPU::OP_2D()
 {
-    uint16_t address = ((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) % 0x2000;
+    uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     registerA = registerA & memory[address];
     setNZ(registerA);
     programCounter += 3;
@@ -948,7 +948,7 @@ void CPU::OP_2D()
 // AND [nnnn+X]: A = A AND [nnnn+X]. Flags nz
 void CPU::OP_3D()
 {
-    uint16_t address = (((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerX) % 0x2000;
+    uint16_t address = (((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) + registerX) % 0x2000;
     registerA = registerA & memory[address];
     setNZ(registerA);
     programCounter += 3;
@@ -957,7 +957,7 @@ void CPU::OP_3D()
 // AND [nnnn+Y]: A = A AND [nnnn+Y]. Flags nz
 void CPU::OP_39()
 {
-    uint16_t address = (((memory[programCounter + 1] << 8u) + memory[programCounter + 2]) + registerY) % 0x2000;
+    uint16_t address = (((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) + registerY) % 0x2000;
     registerA = registerA & memory[address];
     setNZ(registerA);
     programCounter += 3;
@@ -966,7 +966,7 @@ void CPU::OP_39()
 // AND [word[nn+X]]: A = A AND [word[nn+X]]. Flags nz
 void CPU::OP_21()
 {
-    uint16_t address = ((memory[memory[programCounter + 1] + registerX] << 8u) + memory[memory[programCounter + 1] + registerX + 1]) % 0x2000;
+    uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
     registerA = registerA & memory[address];
     setNZ(registerA);
     programCounter += 2;
@@ -975,7 +975,7 @@ void CPU::OP_21()
 // AND [word[nn]+Y]: A = A AND [word[nn]+Y]. Flags nz
 void CPU::OP_31()
 {
-    uint16_t address = (((memory[memory[programCounter + 1]] << 8u) + memory[memory[programCounter + 1]+ 1]) + registerY) % 0x2000;
+    uint16_t address = (((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]]) + registerY) % 0x2000;
     registerA = registerA & memory[address];
     setNZ(registerA);
     programCounter += 2;
