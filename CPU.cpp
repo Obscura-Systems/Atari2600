@@ -330,8 +330,9 @@ void CPU::Cycle()
     cout << "Stack Pointer:\t\t0x";
     cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(stackPointer) << "\t\t\t";
     cout.flags(f);
-    cout << "PSR:\t\t\t0b" << bitset<8>(processStatusRegister) << endl;  
+    cout << "PSR:\t\t\t0b" << bitset<8>(processStatusRegister) << endl << '\n';  
     cout.flags(f);
+
     
     return;
 }
@@ -354,6 +355,7 @@ void CPU::OP_NULL()
 void CPU::OP_A8() 
 {                          
     registerY = registerA;
+    clearNZ();
     setNZ(registerY);
     ++programCounter;
 }
@@ -362,6 +364,7 @@ void CPU::OP_A8()
 void CPU::OP_AA()                           
 {
     registerX = registerA;
+    clearNZ();
     setNZ(registerX);
     ++programCounter;
 }
@@ -370,6 +373,7 @@ void CPU::OP_AA()
 void CPU::OP_BA()
 {
     registerX = stackPointer;
+    clearNZ();
     setNZ(registerX);
     ++programCounter;
 }
@@ -378,6 +382,7 @@ void CPU::OP_BA()
 void CPU::OP_98()
 {
     registerA = registerY;
+    clearNZ();
     setNZ(registerA);
     ++programCounter;
 }
@@ -386,6 +391,7 @@ void CPU::OP_98()
 void CPU::OP_8A()
 {
     registerA = registerX;
+    clearNZ();
     setNZ(registerA);
     ++programCounter;
 }
@@ -401,6 +407,7 @@ void CPU::OP_9A()
 void CPU::OP_A9()
 {
     registerA = memory[programCounter + 1];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -409,6 +416,7 @@ void CPU::OP_A9()
 void CPU::OP_A2()
 {
     registerX = memory[programCounter + 1];
+    clearNZ();
     setNZ(registerX);
     programCounter += 2;
 }
@@ -417,6 +425,7 @@ void CPU::OP_A2()
 void CPU::OP_A0()
 {
     registerY = memory[programCounter + 1];
+    clearNZ();
     setNZ(registerY);
     programCounter += 2;
 }
@@ -428,6 +437,7 @@ void CPU::OP_A0()
 void CPU::OP_A5()
 {
     registerA = memory[memory[programCounter + 1]];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -436,6 +446,7 @@ void CPU::OP_A5()
 void CPU::OP_B5()
 {
     registerA = memory[memory[programCounter + 1] + registerX];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -445,6 +456,7 @@ void CPU::OP_AD()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     registerA = memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -454,6 +466,7 @@ void CPU::OP_BD()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
     registerA = memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -463,6 +476,7 @@ void CPU::OP_B9()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerY) % 0x2000;
     registerA = memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -472,6 +486,7 @@ void CPU::OP_A1()
 {
     uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
     registerA = memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -481,6 +496,7 @@ void CPU::OP_B1()
 {
     uint16_t address = ((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]] + registerY) % 0x2000;
     registerA = memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -489,6 +505,7 @@ void CPU::OP_B1()
 void CPU::OP_A6()
 {
     registerX = memory[memory[programCounter + 1]];
+    clearNZ();
     setNZ(registerX);
     programCounter += 2;
 }
@@ -497,6 +514,7 @@ void CPU::OP_A6()
 void CPU::OP_B6()
 {
     registerX = memory[memory[programCounter + 1] + registerY];
+    clearNZ();
     setNZ(registerX);
     programCounter += 2;
 }
@@ -506,6 +524,7 @@ void CPU::OP_AE()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     registerX = memory[address];
+    clearNZ();
     setNZ(registerX);
     programCounter += 3;
 }
@@ -515,6 +534,7 @@ void CPU::OP_BE()
 {
     uint16_t address = (((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) + registerY) % 0x2000;
     registerX = memory[address];
+    clearNZ();
     setNZ(registerX);
     programCounter += 3;
 }
@@ -523,6 +543,7 @@ void CPU::OP_BE()
 void CPU::OP_A4()
 {
     registerY = memory[memory[programCounter + 1]];
+    clearNZ();
     setNZ(registerY);
     programCounter += 2;
 }
@@ -531,6 +552,7 @@ void CPU::OP_A4()
 void CPU::OP_B4()
 {
     registerY = memory[memory[programCounter + 1] + registerX];
+    clearNZ();
     setNZ(registerY);
     programCounter += 2;
 }
@@ -540,6 +562,7 @@ void CPU::OP_AC()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     registerY = memory[address];
+    clearNZ();
     setNZ(registerY);
     programCounter += 3;
 }
@@ -549,6 +572,7 @@ void CPU::OP_BC()
 {
     uint16_t address = (((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) + registerX) % 0x2000;
     registerY = memory[address];
+    clearNZ();
     setNZ(registerY);
     programCounter += 3;
 }
@@ -671,7 +695,7 @@ void CPU::OP_08()
 {
     uint8_t address = stackPointer + 0x0100;
     memory[address] = processStatusRegister;
-    processStatusRegister = processStatusRegister | 0b00110000;
+    processStatusRegister |= 0b00110000;
     --stackPointer;
     ++programCounter;
 }
@@ -708,7 +732,8 @@ void CPU::OP_28()
 void CPU::OP_69()
 {
     uint8_t adder = memory[programCounter + 1] + (processStatusRegister & 0b00000001);
-    uint8_t tempA = registerA + adder;   
+    uint8_t tempA = registerA + adder;  
+    clearNZCV(); 
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -720,7 +745,8 @@ void CPU::OP_69()
 void CPU::OP_65()
 {
     uint8_t adder = memory[memory[programCounter + 1]] + (processStatusRegister & 0b00000001);
-    uint8_t tempA = registerA + adder;   
+    uint8_t tempA = registerA + adder; 
+    clearNZCV();  
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -732,7 +758,8 @@ void CPU::OP_65()
 void CPU::OP_75()
 {
     uint8_t adder = memory[memory[programCounter + 1] + registerX] + (processStatusRegister & 0b00000001);
-    uint8_t tempA = registerA + adder;   
+    uint8_t tempA = registerA + adder;  
+    clearNZCV(); 
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -745,7 +772,8 @@ void CPU::OP_6D()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
-    uint8_t tempA = registerA + adder;   
+    uint8_t tempA = registerA + adder;  
+    clearNZCV(); 
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -758,7 +786,8 @@ void CPU::OP_7D()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
     uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
-    uint8_t tempA = registerA + adder;   
+    uint8_t tempA = registerA + adder; 
+    clearNZCV();  
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -771,7 +800,8 @@ void CPU::OP_79()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerY) % 0x2000;
     uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
-    uint8_t tempA = registerA + adder;   
+    uint8_t tempA = registerA + adder;  
+    clearNZCV(); 
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -784,7 +814,8 @@ void CPU::OP_61()
 {
     uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
     uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
-    uint8_t tempA = registerA + adder;   
+    uint8_t tempA = registerA + adder;  
+    clearNZCV(); 
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -797,7 +828,8 @@ void CPU::OP_71()
 {
     uint16_t address = ((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]] + registerY) % 0x2000;
     uint8_t adder = memory[address] + (processStatusRegister & 0b00000001);
-    uint8_t tempA = registerA + adder;   
+    uint8_t tempA = registerA + adder;  
+    clearNZCV(); 
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -814,7 +846,8 @@ void CPU::OP_71()
 void CPU::OP_E9()
 {
     uint8_t adder = memory[programCounter + 1] + 1;
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - adder;   
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - adder;
+    clearNZCV();
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -826,7 +859,8 @@ void CPU::OP_E9()
 void CPU::OP_E5()
 {
     uint8_t adder = memory[memory[programCounter + 1]];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+    clearNZCV();
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -838,7 +872,8 @@ void CPU::OP_E5()
 void CPU::OP_F5()
 {
     uint8_t adder = memory[memory[programCounter + 1] + registerX];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder; 
+    clearNZCV();  
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -852,6 +887,7 @@ void CPU::OP_ED()
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     uint8_t adder = memory[address];
     uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    clearNZCV();
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -865,6 +901,7 @@ void CPU::OP_FD()
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
     uint8_t adder = memory[address];
     uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    clearNZCV();
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -877,7 +914,8 @@ void CPU::OP_F9()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerY) % 0x2000;
     uint8_t adder = memory[address];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder; 
+    clearNZCV();  
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -890,7 +928,8 @@ void CPU::OP_E1()
 {
     uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
     uint8_t adder = memory[address];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;  
+    clearNZCV(); 
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -904,6 +943,7 @@ void CPU::OP_F1()
     uint16_t address = ((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]] + registerY) % 0x2000;
     uint8_t adder = memory[address];
     uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+    clearNZCV();
     setCarry(registerA, tempA);
     setOverflow(registerA, adder, tempA);
     registerA = tempA & 0xFF;
@@ -918,6 +958,7 @@ void CPU::OP_F1()
 void CPU::OP_29()
 {
     registerA = registerA & memory[programCounter + 1];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -926,6 +967,7 @@ void CPU::OP_29()
 void CPU::OP_25()
 {
     registerA = registerA & memory[memory[programCounter + 1]];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -934,6 +976,7 @@ void CPU::OP_25()
 void CPU::OP_35()
 {
     registerA = registerA & memory[memory[programCounter + 1] + registerX];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -943,6 +986,7 @@ void CPU::OP_2D()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     registerA = registerA & memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -952,6 +996,7 @@ void CPU::OP_3D()
 {
     uint16_t address = (((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) + registerX) % 0x2000;
     registerA = registerA & memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -961,6 +1006,7 @@ void CPU::OP_39()
 {
     uint16_t address = (((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) + registerY) % 0x2000;
     registerA = registerA & memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -970,6 +1016,7 @@ void CPU::OP_21()
 {
     uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
     registerA = registerA & memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -979,6 +1026,7 @@ void CPU::OP_31()
 {
     uint16_t address = (((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]]) + registerY) % 0x2000;
     registerA = registerA & memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -990,6 +1038,7 @@ void CPU::OP_31()
 void CPU::OP_49()
 {
     registerA = registerA ^ memory[programCounter + 1];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -998,6 +1047,7 @@ void CPU::OP_49()
 void CPU::OP_45()
 {
     registerA = registerA ^ memory[memory[programCounter + 1]];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -1006,6 +1056,7 @@ void CPU::OP_45()
 void CPU::OP_55()
 {
     registerA = registerA ^ memory[memory[programCounter + 1] + registerX];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -1015,6 +1066,7 @@ void CPU::OP_4D()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     registerA = registerA ^ memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -1024,6 +1076,7 @@ void CPU::OP_5D()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
     registerA = registerA ^ memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -1033,6 +1086,7 @@ void CPU::OP_59()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerY) % 0x2000;
     registerA = registerA ^ memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -1042,6 +1096,7 @@ void CPU::OP_41()
 {
     uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
     registerA = registerA ^ memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -1051,6 +1106,7 @@ void CPU::OP_51()
 {
     uint16_t address = (((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]]) + registerY) % 0x2000;
     registerA = registerA ^ memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -1062,6 +1118,7 @@ void CPU::OP_51()
 void CPU::OP_09()
 {
     registerA = registerA | memory[programCounter + 1];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -1070,6 +1127,7 @@ void CPU::OP_09()
 void CPU::OP_05()
 {
     registerA = registerA | memory[memory[programCounter + 1]];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -1078,6 +1136,7 @@ void CPU::OP_05()
 void CPU::OP_15()
 {
     registerA = registerA | memory[memory[programCounter + 1] + registerX];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -1087,6 +1146,7 @@ void CPU::OP_0D()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     registerA = registerA | memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -1096,6 +1156,7 @@ void CPU::OP_1D()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
     registerA = registerA | memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -1105,6 +1166,7 @@ void CPU::OP_19()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerY) % 0x2000;
     registerA = registerA | memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 3;
 }
@@ -1114,6 +1176,7 @@ void CPU::OP_01()
 {
     uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
     registerA = registerA | memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -1123,6 +1186,7 @@ void CPU::OP_11()
 {
     uint16_t address = (((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]]) + registerY) % 0x2000;
     registerA = registerA | memory[address];
+    clearNZ();
     setNZ(registerA);
     programCounter += 2;
 }
@@ -1134,6 +1198,7 @@ void CPU::OP_11()
 void CPU::OP_C9()
 {
     uint8_t value = registerA - memory[programCounter + 1];
+    clearNZC();
     setCarry(registerA, memory[programCounter + 1]);
     setNZ(value);
     programCounter += 2;
@@ -1143,6 +1208,7 @@ void CPU::OP_C9()
 void CPU::OP_C5()
 {
     uint8_t value = registerA - memory[memory[programCounter + 1]];
+    clearNZC();
     setCarry(registerA, memory[memory[programCounter + 1]]);
     setNZ(value);
     programCounter += 2;
@@ -1152,6 +1218,7 @@ void CPU::OP_C5()
 void CPU::OP_D5()
 {
     uint8_t value = registerA - memory[memory[programCounter + 1] + registerX];
+    clearNZC();
     setCarry(registerA, memory[memory[programCounter + 1] + registerX]);
     setNZ(value);
     programCounter += 2;
@@ -1162,6 +1229,7 @@ void CPU::OP_CD()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     uint8_t value = registerA - memory[address];
+    clearNZC();
     setCarry(registerA, memory[address]);
     setNZ(value);
     programCounter += 3;
@@ -1172,6 +1240,7 @@ void CPU::OP_DD()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
     uint8_t value = registerA - memory[address];
+    clearNZC();
     setCarry(registerA, memory[address]);
     setNZ(value);
     programCounter += 3;
@@ -1182,6 +1251,7 @@ void CPU::OP_D9()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerY) % 0x2000;
     uint8_t value = registerA - memory[address];
+    clearNZC();
     setCarry(registerA, memory[address]);
     setNZ(value);
     programCounter += 3;
@@ -1192,6 +1262,7 @@ void CPU::OP_C1()
 {
     uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
     uint8_t value = registerA - memory[address];
+    clearNZC();
     setCarry(registerA, memory[address]);
     setNZ(value);
     programCounter += 2;
@@ -1202,6 +1273,7 @@ void CPU::OP_D1()
 {
     uint16_t address = (((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]]) + registerY) % 0x2000;
     uint8_t value = registerA - memory[address];
+    clearNZC();
     setCarry(registerA, memory[address]);
     setNZ(value);
     programCounter += 2;
@@ -1211,6 +1283,7 @@ void CPU::OP_D1()
 void CPU::OP_E0()
 {
     uint8_t value = registerX - memory[programCounter + 1];
+    clearNZC();
     setCarry(registerX, memory[programCounter + 1]);
     setNZ(value);
     programCounter += 2;
@@ -1220,6 +1293,7 @@ void CPU::OP_E0()
 void CPU::OP_E4()
 {
     uint8_t value = registerX - memory[memory[programCounter + 1]];
+    clearNZC();
     setCarry(registerX, memory[memory[programCounter + 1]]);
     setNZ(value);
     programCounter += 2;
@@ -1230,6 +1304,7 @@ void CPU::OP_EC()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     uint8_t value = registerX - memory[address];
+    clearNZC();
     setCarry(registerX, memory[address]);
     setNZ(value);
     programCounter += 3;
@@ -1239,6 +1314,7 @@ void CPU::OP_EC()
 void CPU::OP_C0()
 {
     uint8_t value = registerY - memory[programCounter + 1];
+    clearNZC();
     setCarry(registerY, memory[programCounter + 1]);
     setNZ(value);
     programCounter += 2;
@@ -1248,6 +1324,7 @@ void CPU::OP_C0()
 void CPU::OP_C4()
 {
     uint8_t value = registerY - memory[memory[programCounter + 1]];
+    clearNZC();
     setCarry(registerY, memory[memory[programCounter + 1]]);
     setNZ(value);
     programCounter += 2;
@@ -1258,6 +1335,7 @@ void CPU::OP_CC()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     uint8_t value = registerY - memory[address];
+    clearNZC();
     setCarry(registerY, memory[address]);
     setNZ(value);
     programCounter += 3;
@@ -1292,6 +1370,7 @@ void CPU::OP_2C()
 void CPU::OP_E6()
 {
     ++memory[programCounter + 1];
+    clearNZ();
     setNZ(memory[programCounter + 1]);
     programCounter += 2;
 }
@@ -1300,6 +1379,7 @@ void CPU::OP_E6()
 void CPU::OP_F6()
 {
     ++memory[programCounter + 1 + registerX];
+    clearNZ();
     setNZ(memory[programCounter + 1 + registerX]);
     programCounter += 2;
 }
@@ -1309,6 +1389,7 @@ void CPU::OP_EE()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     ++memory[address];
+    clearNZ();
     setNZ(memory[address]);
     programCounter += 3;
 }
@@ -1318,6 +1399,7 @@ void CPU::OP_FE()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
     ++memory[address];
+    clearNZ();
     setNZ(memory[address]);
     programCounter += 3;
 }
@@ -1326,6 +1408,7 @@ void CPU::OP_FE()
 void CPU::OP_E8()
 {
     ++registerX;
+    clearNZ();
     setNZ(registerX);
     ++programCounter;
 }
@@ -1334,6 +1417,7 @@ void CPU::OP_E8()
 void CPU::OP_C8()
 {
     ++registerY;
+    clearNZ();
     setNZ(registerY);
     ++programCounter;
 }
@@ -1345,6 +1429,7 @@ void CPU::OP_C8()
 void CPU::OP_C6()
 {
     --memory[programCounter + 1];
+    clearNZ();
     setNZ(memory[programCounter + 1]);
     programCounter += 2;
 }
@@ -1353,6 +1438,7 @@ void CPU::OP_C6()
 void CPU::OP_D6()
 {
     --memory[programCounter + 1 + registerX];
+    clearNZ();
     setNZ(memory[programCounter + 1 + registerX]);
     programCounter += 2;
 }
@@ -1362,6 +1448,7 @@ void CPU::OP_CE()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
     --memory[address];
+    clearNZ();
     setNZ(memory[address]);
     programCounter += 3;
 }
@@ -1371,6 +1458,7 @@ void CPU::OP_DE()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
     --memory[address];
+    clearNZ();
     setNZ(memory[address]);
     programCounter += 3;
 }
@@ -1379,6 +1467,7 @@ void CPU::OP_DE()
 void CPU::OP_CA()
 {
     --registerX;
+    clearNZ();
     setNZ(registerX);
     ++programCounter;
 }
@@ -1387,6 +1476,7 @@ void CPU::OP_CA()
 void CPU::OP_88()
 {
     --registerY;
+    clearNZ();
     setNZ(registerY);
     ++programCounter;
 }
@@ -1400,8 +1490,8 @@ void CPU::OP_88()
 // SHL A: Shift left A. Flags NCZ
 void CPU::OP_0A()
 {
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= ((registerA &= 0b10000000) >> 7u);
+    clearNZC();
+    processStatusRegister |= ((registerA & 0b10000000) >> 7u);
     registerA <<= 1u;
     setNZ(registerA);
     ++programCounter;
@@ -1410,8 +1500,8 @@ void CPU::OP_0A()
 // SHL [nn]: Shift left [nn]. Flags NCZ
 void CPU::OP_06()
 {
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= ((memory[programCounter + 1] &= 0b10000000) >> 7u);
+    clearNZC();
+    processStatusRegister |= ((memory[programCounter + 1] & 0b10000000) >> 7u);
     memory[programCounter + 1] <<= 1u;
     setNZ(memory[programCounter + 1]);
     programCounter += 2;
@@ -1420,8 +1510,8 @@ void CPU::OP_06()
 // SHL [nn+X]: Shift left [nn+X]. Flags NCZ
 void CPU::OP_16()
 {
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= ((memory[programCounter + 1 + registerX] &= 0b10000000) >> 7u);
+    clearNZC();
+    processStatusRegister |= ((memory[programCounter + 1 + registerX] & 0b10000000) >> 7u);
     memory[programCounter + 1 + registerX] <<= 1u;
     setNZ(memory[programCounter + 1 + registerX]);
     programCounter += 2;
@@ -1431,8 +1521,8 @@ void CPU::OP_16()
 void CPU::OP_0E()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= ((memory[address] &= 0b10000000) >> 7u);
+    clearNZC();
+    processStatusRegister |= ((memory[address] & 0b10000000) >> 7u);
     memory[address] <<= 1u;
     setNZ(memory[address]);
     programCounter += 3;
@@ -1442,8 +1532,8 @@ void CPU::OP_0E()
 void CPU::OP_1E()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= ((memory[address] &= 0b10000000) >> 7u);
+    clearNZC();
+    processStatusRegister |= ((memory[address] & 0b10000000) >> 7u);
     memory[address] <<= 1u;
     setNZ(memory[address]);
     programCounter += 3;
@@ -1455,8 +1545,8 @@ void CPU::OP_1E()
 // SHR A: Shift right A. Flags NCZ
 void CPU::OP_4A()
 {
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= (registerA &= 0b00000001);
+    clearNZC();
+    processStatusRegister |= (registerA & 0b00000001);
     registerA >>= 1u;
     setNZ(registerA);
     ++programCounter;
@@ -1465,8 +1555,8 @@ void CPU::OP_4A()
 // SHR [nn]: Shift right [nn]. Flags NCZ
 void CPU::OP_46()
 {
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= (memory[programCounter + 1] &= 0b00000001);
+    clearNZC();
+    processStatusRegister |= (memory[programCounter + 1] & 0b00000001);
     memory[programCounter + 1] >>= 1u;
     setNZ(memory[programCounter + 1]);
     programCounter += 2;
@@ -1475,8 +1565,8 @@ void CPU::OP_46()
 // SHR [nn+X]: Shift right [nn+X]. Flags NCZ
 void CPU::OP_56()
 {
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= (memory[programCounter + 1 + registerX] &= 0b00000001);
+    clearNZC();
+    processStatusRegister |= (memory[programCounter + 1 + registerX] & 0b00000001);
     memory[programCounter + 1 + registerX] >>= 1u;
     setNZ(memory[programCounter + 1 + registerX]);
     programCounter += 2;
@@ -1486,8 +1576,8 @@ void CPU::OP_56()
 void CPU::OP_4E()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= (memory[address] &= 0b00000001);
+    clearNZC();
+    processStatusRegister |= (memory[address] & 0b00000001);
     memory[address] >>= 1u;
     setNZ(memory[address]);
     programCounter += 3;
@@ -1497,8 +1587,8 @@ void CPU::OP_4E()
 void CPU::OP_5E()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= (memory[address] &= 0b00000001);
+    clearNZC();
+    processStatusRegister |= (memory[address] & 0b00000001);
     memory[address] >>= 1u;
     setNZ(memory[address]);
     programCounter += 3;
@@ -1511,8 +1601,8 @@ void CPU::OP_5E()
 void CPU::OP_2A()
 {
     uint8_t storeCarry = (processStatusRegister & 0b00000001);
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= ((registerA &= 0b10000000) >> 7u);
+    clearNZC();
+    processStatusRegister |= ((registerA & 0b10000000) >> 7u);
     registerA <<= 1u;
     registerA |= storeCarry;
     setNZ(registerA);
@@ -1523,8 +1613,8 @@ void CPU::OP_2A()
 void CPU::OP_26()
 {
     uint8_t storeCarry = (processStatusRegister & 0b00000001);
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= ((memory[programCounter + 1] &= 0b10000000) >> 7u);
+    clearNZC();
+    processStatusRegister |= ((memory[programCounter + 1] & 0b10000000) >> 7u);
     memory[programCounter + 1] <<= 1u;
     registerA |= storeCarry;
     setNZ(memory[programCounter + 1]);
@@ -1535,8 +1625,8 @@ void CPU::OP_26()
 void CPU::OP_36()
 {
     uint8_t storeCarry = (processStatusRegister & 0b00000001);
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= ((memory[programCounter + 1 + registerX] &= 0b10000000) >> 7u);
+    clearNZC();
+    processStatusRegister |= ((memory[programCounter + 1 + registerX] & 0b10000000) >> 7u);
     memory[programCounter + 1 + registerX] <<= 1u;
     registerA |= storeCarry;
     setNZ(memory[programCounter + 1 + registerX]);
@@ -1548,8 +1638,8 @@ void CPU::OP_2E()
 {
     uint8_t storeCarry = (processStatusRegister & 0b00000001);
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= ((memory[address] &= 0b10000000) >> 7u);
+    clearNZC();
+    processStatusRegister |= ((memory[address] & 0b10000000) >> 7u);
     memory[address] <<= 1u;
     registerA |= storeCarry;
     setNZ(memory[address]);
@@ -1561,8 +1651,8 @@ void CPU::OP_3E()
 {
     uint8_t storeCarry = (processStatusRegister & 0b00000001);
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= ((memory[address] &= 0b10000000) >> 7u);
+    clearNZC();
+    processStatusRegister |= ((memory[address] & 0b10000000) >> 7u);
     memory[address] <<= 1u;
     registerA |= storeCarry;
     setNZ(memory[address]);
@@ -1575,8 +1665,8 @@ void CPU::OP_3E()
 void CPU::OP_6A()
 {
     uint8_t storeCarry = (processStatusRegister & 0b00000001);
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= (registerA &= 0b00000001);
+    clearNZC();
+    processStatusRegister |= (registerA & 0b00000001);
     registerA >>= 1u;
     registerA |= (storeCarry << 7u);
     setNZ(registerA);
@@ -1587,8 +1677,8 @@ void CPU::OP_6A()
 void CPU::OP_66()
 {
     uint8_t storeCarry = (processStatusRegister & 0b00000001);
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= (memory[programCounter + 1] &= 0b00000001);
+    clearNZC();
+    processStatusRegister |= (memory[programCounter + 1] & 0b00000001);
     memory[programCounter + 1] >>= 1u;
     registerA |= (storeCarry << 7u);
     setNZ(memory[programCounter + 1]);
@@ -1599,8 +1689,8 @@ void CPU::OP_66()
 void CPU::OP_76()
 {
     uint8_t storeCarry = (processStatusRegister & 0b00000001);
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= (memory[programCounter + 1 + registerX] &= 0b00000001);
+    clearNZC();
+    processStatusRegister |= (memory[programCounter + 1 + registerX] & 0b00000001);
     memory[programCounter + 1 + registerX] >>= 1u;
     registerA |= (storeCarry << 7u);
     setNZ(memory[programCounter + 1 + registerX]);
@@ -1612,8 +1702,8 @@ void CPU::OP_6E()
 {
     uint8_t storeCarry = (processStatusRegister & 0b00000001);
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= (memory[address] &= 0b00000001);
+    clearNZC();
+    processStatusRegister |= (memory[address] & 0b00000001);
     memory[address] >>= 1u;
     registerA |= (storeCarry << 7u);
     setNZ(memory[address]);
@@ -1625,8 +1715,8 @@ void CPU::OP_7E()
 {
     uint8_t storeCarry = (processStatusRegister & 0b00000001);
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
-    processStatusRegister &= 0b11111110;
-    processStatusRegister |= (memory[address] &= 0b00000001);
+    clearNZC();
+    processStatusRegister |= (memory[address] & 0b00000001);
     memory[address] >>= 1u;
     registerA |= (storeCarry << 7u);
     setNZ(memory[address]);
@@ -1661,7 +1751,7 @@ void CPU::OP_6C()
     
 }
 
-// CALL nnnn: 
+// CALL nnnn: Set memory at stack pointer to program counter + 2, set program counter to nnnn. No Flags
 void CPU::OP_20()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
@@ -1673,7 +1763,7 @@ void CPU::OP_20()
 void CPU::OP_40()
 {
     processStatusRegister &= 0b00110000;
-    processStatusRegister |= (memory[stackPointer] &= 0b11001111);
+    processStatusRegister |= (memory[stackPointer] & 0b11001111);
     programCounter = memory[stackPointer];
 }
 
@@ -1854,37 +1944,54 @@ void CPU::OP_9C(){}
 void CPU::OP_9E(){}
 void CPU::OP_9B(){}
 
-// Clear and set carry bit ** For CMP plug memory into tempRegister **
+// set carry bit ** For CMP plug memory into tempRegister **
 inline void CPU::setCarry(uint8_t &reg, uint8_t &tempRegister)
 {
-    processStatusRegister &= 0b11111110;
     if(tempRegister <= reg)
     {
         processStatusRegister |= 0b00000001;
     }
 }
 
-// Clear and set overflow bit
+// set overflow bits
 inline void CPU::setOverflow(uint8_t &reg, uint8_t &adderValue, uint8_t &tempRegister)
 {
-    processStatusRegister &= 0b10111111;
     if(((reg & 0b10000000) == (adderValue & 0b10000000)) && ((reg & 0b10000000) != (tempRegister & 0b10000000)))
     {
         processStatusRegister |= 0b01000000;
     }
 }
 
+// Set Negative and Zero Bits
 inline void CPU::setNZ(uint8_t &reg)
 {
-    // If destination equals 0 set zero bit, otherwise clear it
-    processStatusRegister &= 0b11111101;
+    // Set zero bit if destination is zero.
     if (reg == 0)
     {
         processStatusRegister |= 0b00000010;
     }  
-
     // Set negative bit equal to destinations most significant bit
-    processStatusRegister &= 0b01111111;
     processStatusRegister |= (reg & 0b10000000);
 }
 
+
+// There are setup to save cycles on operations that set more than one flag.
+// All Ops that set N also set Z. All Ops that set C also set NZ. All ops that set V also set NZC.
+// Anything else is handled directly in op code. 
+inline void CPU::clearNZ()
+{
+    // Clear Negative and Zero Bits
+    processStatusRegister &= 0b01111101;
+};
+
+inline void CPU::clearNZC()
+{
+    // Clear Negative, Zero, and Carry Bits
+    processStatusRegister &= 0b01111100;
+};
+
+inline void CPU::clearNZCV()
+{
+    // Clear Negative, Zero, Carry, and Overflow Bits
+    processStatusRegister &= 0b00111100;
+};
