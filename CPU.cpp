@@ -807,6 +807,7 @@ void CPU::OP_71()
 
 // TESTED TO HERE *************************
 
+
 // Subtract memory from accumulator with borrow
 
 // SBC #nn: Add carry to Accumulator then subtract 1 and #nn. Flags nzcv
@@ -910,6 +911,7 @@ void CPU::OP_F1()
     programCounter += 2;
 }
 
+
 // Logical AND memory with accumulator
 
 // AND #nn: A = A AND #nn. Flags nz
@@ -980,6 +982,7 @@ void CPU::OP_31()
     setNZ(registerA);
     programCounter += 2;
 }
+
 
 // Exclusive-OR memory with accumulator
 
@@ -1052,6 +1055,7 @@ void CPU::OP_51()
     programCounter += 2;
 }
 
+
 // Logical OR memory with accumulator
 
 // ORA #nn: A = A OR nn. Flags nz
@@ -1122,6 +1126,7 @@ void CPU::OP_11()
     setNZ(registerA);
     programCounter += 2;
 }
+
 
 // Compare
 
@@ -1258,6 +1263,7 @@ void CPU::OP_CC()
     programCounter += 3;
 }
 
+
 // Bit Test
 
 // BIT [nn]: Flags are set so Z=((A AND [addr])=0x00), N=[addr].Bit7, V=[addr].Bit6. N and V not affected by A.
@@ -1278,6 +1284,7 @@ void CPU::OP_2C()
     processStatusRegister |= (!(registerA & memory[address]) << 1u);
     programCounter += 3;
 }
+
 
 // Increment by one
 
@@ -1331,6 +1338,7 @@ void CPU::OP_C8()
     ++programCounter;
 }
 
+
 // Decrement by one
 
 // DEC [nn]: [nn]=[nn]-1. Flags NZ
@@ -1382,6 +1390,7 @@ void CPU::OP_88()
     setNZ(registerY);
     ++programCounter;
 }
+
 
 
 // CPU Rotate and Shift instructions
@@ -1440,6 +1449,7 @@ void CPU::OP_1E()
     programCounter += 3;
 }
 
+
 // Shift Right Logical
 
 // SHR A: Shift right A. Flags NCZ
@@ -1493,6 +1503,7 @@ void CPU::OP_5E()
     setNZ(memory[address]);
     programCounter += 3;
 }
+
 
 // Rotate Left through Carry
 
@@ -1626,23 +1637,163 @@ void CPU::OP_7E()
 // CPU Jump and Control Instructions
 
 // Normal Jumps & Subroutine Calls/Returns
-void CPU::OP_4C(){}
-void CPU::OP_6C(){}
-void CPU::OP_20(){}
-void CPU::OP_40(){}
-void CPU::OP_60(){}
+
+// JMP nnnn: Program Counter = nnnn. No Flags
+void CPU::OP_4C()
+{
+    uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
+    programCounter = address;
+}
+
+// JMP [nnnn]: Program Counter = WORD[nnnn]
+void CPU::OP_6C()
+{
+    uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
+    // This is done because of a glitch in the 6502 that does not let JMP [nnnn] cross page boundaries.
+    if (memory[address] == 0xFF) 
+    {
+        programCounter = ((memory[address + 1 - 0x100] << 8u) + memory[address]) % 0x2000;
+    }
+    else
+    {
+        programCounter = ((memory[address + 1] << 8u) + memory[address]) % 0x2000;
+    }
+    
+}
+
+// CALL nnnn: 
+void CPU::OP_20()
+{
+    uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
+    memory[stackPointer] = programCounter + 2;
+    programCounter = address;
+}
+
+// RETI: Return from BRK/IRQ/NMI. All Flags (Except Break and Unused Flags)
+void CPU::OP_40()
+{
+    processStatusRegister &= 0b00110000;
+    processStatusRegister |= (memory[stackPointer] &= 0b11001111);
+    programCounter = memory[stackPointer];
+}
+
+// RET: Return from CALL. No Flags
+void CPU::OP_60()
+{
+    programCounter = memory[stackPointer] + 1;
+}
+
+
 
 // Conditional Branches (conditional jump to PC=PC+/-dd)
-void CPU::OP_10(){}
-void CPU::OP_30(){}
-void CPU::OP_50(){}
-void CPU::OP_70(){}
-void CPU::OP_90(){}
-void CPU::OP_B0(){}
-void CPU::OP_D0(){}
-void CPU::OP_F0(){}
+
+// BPL dd: Brach to PC+/-dd if N=0. No Flags
+void CPU::OP_10()
+{
+    if ((processStatusRegister & 0b10000000) == 0x00)
+    {
+        programCounter += memory[programCounter + 1];
+    }
+    else
+    {
+        programCounter += 2;
+    }
+}
+
+// BMI dd: Brach to PC+/-dd if N=1. No Flags
+void CPU::OP_30()
+{
+    if ((processStatusRegister & 0b10000000) == 0x80)
+    {
+        programCounter += memory[programCounter + 1];
+    }
+    else
+    {
+        programCounter += 2;
+    }
+}
+
+// BVC dd: Brach to PC+/-dd if V=0. No Flags
+void CPU::OP_50()
+{
+    if ((processStatusRegister & 0b01000000) == 0x00)
+    {
+        programCounter += memory[programCounter + 1];
+    }
+    else
+    {
+        programCounter += 2;
+    }
+}
+
+// BVS dd: Brach to PC+/-dd if V=1. No Flags
+void CPU::OP_70()
+{
+    if ((processStatusRegister & 0b01000000) == 0x40)
+    {
+        programCounter += memory[programCounter + 1];
+    }
+    else
+    {
+        programCounter += 2;
+    }
+}
+
+// BCC/BLT dd: Brach to PC+/-dd if C=0. No Flags
+void CPU::OP_90()
+{
+    if ((processStatusRegister & 0b00000001) == 0x00)
+    {
+        programCounter += memory[programCounter + 1];
+    }
+    else
+    {
+        programCounter += 2;
+    }
+}
+
+// BCS/BGE dd: Brach to PC+/-dd if C=1. No Flags
+void CPU::OP_B0()
+{
+    if ((processStatusRegister & 0b00000001) == 0x01)
+    {
+        programCounter += memory[programCounter + 1];
+    }
+    else
+    {
+        programCounter += 2;
+    }
+}
+
+// BNE/BZC dd: Brach to PC+/-dd if Z=0. No Flags
+void CPU::OP_D0()
+{
+    if ((processStatusRegister & 0b00000010) == 0x00)
+    {
+        programCounter += memory[programCounter + 1];
+    }
+    else
+    {
+        programCounter += 2;
+    }
+}
+
+// BEQ/BZS dd: Brach to PC+/-dd if Z=1. No Flags
+void CPU::OP_F0()
+{
+        if ((processStatusRegister & 0b00000010) == 0x02)
+    {
+        programCounter += memory[programCounter + 1];
+    }
+    else
+    {
+        programCounter += 2;
+    }
+}
+
 
 // Interrupts, Exceptions, Breakpoints
+
 void CPU::OP_00(){}         // FORCE BREAK
 //void DUMMY();             // INTERRUPT
 //void DUMMY();             // NMI
