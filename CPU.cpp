@@ -272,68 +272,8 @@ CPU::~CPU()
 
 void CPU::Cycle()
 {
-
-    // *** TEMPORARY CODE FOR TESTING INDIVIDUAL OPCODES ***
-
-    processStatusRegister = 0b00100000;
-
-    registerA = 0x0F;
-    registerX = 0x02;
-    registerY = 0x02;
-
-    memory[0xF000 % 0x2000] = 0x24;
-    memory[0xF001 % 0x2000] = 0x66;
-    memory[0xF002 % 0x2000] = 0x79;
-    memory[0x7879 % 0x2000] = 0xF0;
-    memory[0x0066 % 0x2000] = 0xF0;
-
-
-
-
-    // To reset format flags? idfk i forgor
-    ios_base::fmtflags f(cout.flags());
-
-    cout << "State prior to opcode: \n";
-    cout << "Register A:\t\t0x";
-    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(registerA) << "\t\t\t";
-    cout.flags(f);
-    cout << "Register X:\t\t0x";
-    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(registerX) << "\t\t\t";
-    cout.flags(f);
-    cout << "Register Y:\t\t0x";
-    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(registerY) << endl;
-    cout.flags(f);
-    cout << "Program Counter:\t0x";
-    cout << hex << setw(4) << setfill('0') << uppercase << static_cast<int>(programCounter) << "\t\t\t";
-    cout.flags(f);
-    cout << "Stack Pointer:\t\t0x";
-    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(stackPointer) << "\t\t\t";
-    cout.flags(f);
-    cout << "PSR:\t\t\t0b" << bitset<8>(processStatusRegister) << endl << '\n';
-    cout.flags(f);
-
-    ((*this).*(opList[memory[programCounter]]))();
-
-    cout << "State after opcode: \n";
-    cout << "Register A:\t\t0x";
-    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(registerA) << "\t\t\t";
-    cout.flags(f);
-    cout << "Register X:\t\t0x";
-    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(registerX) << "\t\t\t";
-    cout.flags(f);
-    cout << "Register Y:\t\t0x";
-    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(registerY) << endl;
-    cout.flags(f);
-    cout << "Program Counter:\t0x";
-    cout << hex << setw(4) << setfill('0') << uppercase << static_cast<int>(programCounter) << "\t\t\t";
-    cout.flags(f);
-    cout << "Stack Pointer:\t\t0x";
-    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(stackPointer) << "\t\t\t";
-    cout.flags(f);
-    cout << "PSR:\t\t\t0b" << bitset<8>(processStatusRegister) << endl << '\n';  
-    cout.flags(f);
-
-    
+    // Runs opcode indicated by byte at memory[programCounter]
+    ((*this).*(opList[memory[programCounter]]))(); 
     return;
 }
 
@@ -1755,7 +1695,10 @@ void CPU::OP_6C()
 void CPU::OP_20()
 {
     uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
+    memory[stackPointer] = programCounter >> 8u;
+    --stackPointer;
     memory[stackPointer] = programCounter + 2;
+    --stackPointer;
     programCounter = address;
 }
 
@@ -1764,12 +1707,18 @@ void CPU::OP_40()
 {
     processStatusRegister &= 0b00110000;
     processStatusRegister |= (memory[stackPointer] & 0b11001111);
-    programCounter = memory[stackPointer];
+    ++stackPointer;
+    programCounter = memory[stackPointer] << 8u;
+    ++stackPointer;
+    programCounter += memory[stackPointer];
 }
 
 // RET: Return from CALL. No Flags
 void CPU::OP_60()
 {
+    ++stackPointer;
+    programCounter = memory[stackPointer] << 8u;
+    ++stackPointer;
     programCounter = memory[stackPointer] + 1;
 }
 
@@ -1884,10 +1833,25 @@ void CPU::OP_F0()
 
 // Interrupts, Exceptions, Breakpoints
 
-void CPU::OP_00(){}         // FORCE BREAK
-//void DUMMY();             // INTERRUPT
-//void DUMMY();             // NMI
-//void DUMMY();             // RESET
+// BRK: Force Break. Sets B=1, [S]=PC+1
+void CPU::OP_00()
+{
+
+}
+
+// /IRQ: Interrupt. 
+void CPU::interrupt()
+{
+
+}             
+void CPU::nmi()
+{
+
+}             
+void CPU::reset()
+{
+
+}            
 
 // CPU Control
 void CPU::OP_18(){}
@@ -1995,3 +1959,64 @@ inline void CPU::clearNZCV()
     // Clear Negative, Zero, Carry, and Overflow Bits
     processStatusRegister &= 0b00111100;
 };
+
+void CPU::resetState()
+{
+    registerA = 0x00;                  
+    registerX = 0x00;                  
+    registerY = 0x00;                
+    programCounter = 0x0000;         
+    stackPointer = 0xFF;  
+    processStatusRegister = 0x20;
+    for (int i = 0; i < 8192; i++)
+    {
+        memory[i] = 0x00;
+    }
+}
+
+
+void CPU::reportStatus()
+{
+    ios_base::fmtflags f(cout.flags());
+    cout << '\n';
+    cout << "Register A:\t\t0x";
+    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(registerA) << "\t\t\t";
+    cout.flags(f);
+    cout << "Register X:\t\t0x";
+    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(registerX) << "\t\t\t";
+    cout.flags(f);
+    cout << "Register Y:\t\t0x";
+    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(registerY) << endl;
+    cout.flags(f);
+    cout << "Program Counter:\t0x";
+    cout << hex << setw(4) << setfill('0') << uppercase << static_cast<int>(programCounter) << "\t\t\t";
+    cout.flags(f);
+    cout << "Stack Pointer:\t\t0x";
+    cout << hex << setw(2) << setfill('0') << uppercase << static_cast<int>(stackPointer) << "\t\t\t";
+    cout.flags(f);
+    cout << "PSR:\t\t\t0b" << bitset<8>(processStatusRegister) << endl;
+    cout.flags(f);
+    for (int i = 0; i < 8192; i++)
+    {
+        if (memory[i] != 0x00)
+        {
+            cout << "Memory[";
+            cout << hex << setw(4) << setfill('0') << uppercase << static_cast<int>(i) << "]: 0x" << setw(2) << static_cast<int>(memory[i]) << endl;
+        }
+    }
+    cout << '\n';
+    
+}
+
+
+void CPU::setMemory(uint16_t address, uint8_t value)
+{
+    memory[address%0x2000] = value;
+}
+
+
+
+
+
+
+

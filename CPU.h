@@ -11,18 +11,19 @@ public:
     ~CPU();
 
     void Cycle();
+    void resetState();
+    void reportStatus();
+    void setMemory(uint16_t address, uint8_t value);
 
 
-    // ROM
-    std::vector<uint8_t> rom;                    // Fits 4K ROMs only. Fix Later. Needs Bank switching for larger carts
-
-private:
     // Registers
     uint8_t registerA{0x00};                    // Accumulator
     uint8_t registerX{0x00};                    // Index Register X
     uint8_t registerY{0x00};                    // Index Register Y
-    uint16_t programCounter{0x1000};            // Program Counter
+    uint16_t programCounter{0x0000};            // Program Counter
     uint8_t stackPointer{0xFF};                 // Stack Pointer. Stack located at 0x0100 to 0x01FF. Points to first FREE
+
+    // I considered using bools for these, but using a bit field let me use just one bitwise AND to clear any amount of flags.
     uint8_t processStatusRegister{0x20};   // Bit  Name    Expl.
                                             // 0    C       Carry           (0=No carry, 1=Carry)
                                             // 1    Z       Zero            (0=Nonzero, 1=Zero)
@@ -34,6 +35,7 @@ private:
                                             // 7    N       Negative/Sign   (0=Positive, 1=Negative)
 
     // Memory. Complete 8K address space. 0x0FFF to 0x1FFF. Lower 4K for internal memory. Upper 4K is for external (ROM)
+private:
     uint8_t memory[8192]{};
 
     // Opcodes
@@ -232,9 +234,9 @@ private:
     
     // Interrupts, Exceptions, Breakpoints
     void OP_00();       // FORCE BREAK
-    //void DUMMY();     // INTERRUPT
-    //void DUMMY();     // NMI
-    //void DUMMY();     // RESET
+    void interrupt();     // INTERRUPT
+    void nmi();     // NMI
+    void reset();     // RESET
 
     // CPU Control
     void OP_18();
