@@ -918,110 +918,299 @@ void CPU::OP_71()
 // SBC #nn: Add carry to Accumulator then subtract 1 and #nn. Flags nzcv
 void CPU::OP_E9()
 {
-    uint8_t adder = memory[programCounter + 1];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
-    clearNZCV();
-    setCarry(registerA, tempA);
-    setOverflow(registerA, adder, tempA);
-    registerA = tempA & 0xFF;
-    setNZ(registerA);
-    programCounter += 2;
+    if ( processStatusRegister & 0b00001000 == 0)
+    {
+        uint8_t adder = memory[programCounter + 1];
+        uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+        clearNZCV();
+        setCarry(registerA, tempA);
+        setOverflow(registerA, adder, tempA);
+        registerA = tempA & 0xFF;
+        setNZ(registerA);
+        programCounter += 2;
+    }
+    else
+    {
+        uint8_t adder = memory[programCounter + 1];
+        uint8_t binaryTempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+        int tempA = (((registerA >> 4u) * 10) + (registerA & 0x0F)) + (processStatusRegister & 0b00000001) - 1 - (((adder >> 4u) * 10) + (adder & 0x0F));
+        clearNZCV();
+        setCarryDecimalSub(tempA);
+        setOverflow(registerA, adder, binaryTempA);
+        if (tempA < 0)
+        {
+            tempA += 100;
+        }
+        else
+        {
+            tempA %= 100;
+        }
+        registerA = ((tempA / 10) << 4u) + (tempA % 10);
+        setNZ(registerA);
+        programCounter += 2;
+    }
 }
 
 // SBC [nn]: Add carry to Accumulator then subtract 1 and [nn]. Flags nzcv
 void CPU::OP_E5()
 {
-    uint8_t adder = memory[memory[programCounter + 1]];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
-    clearNZCV();
-    setCarry(registerA, tempA);
-    setOverflow(registerA, adder, tempA);
-    registerA = tempA & 0xFF;
-    setNZ(registerA);
-    programCounter += 2;
+    if ( processStatusRegister & 0b00001000 == 0)
+    {
+        uint8_t adder = memory[memory[programCounter + 1]];
+        uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+        clearNZCV();
+        setCarry(registerA, tempA);
+        setOverflow(registerA, adder, tempA);
+        registerA = tempA & 0xFF;
+        setNZ(registerA);
+        programCounter += 2;
+    }
+    else
+    {
+        uint8_t adder = memory[memory[programCounter + 1]];
+        uint8_t binaryTempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+        int tempA = (((registerA >> 4u) * 10) + (registerA & 0x0F)) + (processStatusRegister & 0b00000001) - 1 - (((adder >> 4u) * 10) + (adder & 0x0F));
+        clearNZCV();
+        setCarryDecimalSub(tempA);
+        setOverflow(registerA, adder, binaryTempA);
+        if (tempA < 0)
+        {
+            tempA += 100;
+        }
+        else
+        {
+            tempA %= 100;
+        }
+        registerA = ((tempA / 10) << 4u) + (tempA % 10);
+        setNZ(registerA);
+        programCounter += 2;
+    }
 }
 
 // SBC [nn+X]: Add carry to Accumulator then subtract 1 and [nn+X]. Flags nzcv
 void CPU::OP_F5()
 {
-    uint8_t adder = memory[memory[programCounter + 1] + registerX];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder; 
-    clearNZCV();  
-    setCarry(registerA, tempA);
-    setOverflow(registerA, adder, tempA);
-    registerA = tempA & 0xFF;
-    setNZ(registerA);
-    programCounter += 2;
+    if ( processStatusRegister & 0b00001000 == 0)
+    {
+        uint8_t adder = memory[memory[programCounter + 1] + registerX];
+        uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder; 
+        clearNZCV();  
+        setCarry(registerA, tempA);
+        setOverflow(registerA, adder, tempA);
+        registerA = tempA & 0xFF;
+        setNZ(registerA);
+        programCounter += 2;
+    }
+    else
+    {
+        uint8_t adder = memory[memory[programCounter + 1] + registerX];
+        uint8_t binaryTempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+        int tempA = (((registerA >> 4u) * 10) + (registerA & 0x0F)) + (processStatusRegister & 0b00000001) - 1 - (((adder >> 4u) * 10) + (adder & 0x0F));
+        clearNZCV();
+        setCarryDecimalSub(tempA);
+        setOverflow(registerA, adder, binaryTempA);
+        if (tempA < 0)
+        {
+            tempA += 100;
+        }
+        else
+        {
+            tempA %= 100;
+        }
+        registerA = ((tempA / 10) << 4u) + (tempA % 10);
+        setNZ(registerA);
+        programCounter += 2;
+    }
 }
 
 // SBC [nnnn]: Add carry to Accumulator then subtract 1 and [nnnn]. Flags nzcv
 void CPU::OP_ED()
 {
-    uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
-    uint8_t adder = memory[address];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
-    clearNZCV();
-    setCarry(registerA, tempA);
-    setOverflow(registerA, adder, tempA);
-    registerA = tempA & 0xFF;
-    setNZ(registerA);
-    programCounter += 3;
+    if ( processStatusRegister & 0b00001000 == 0)
+    {
+        uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
+        uint8_t adder = memory[address];
+        uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+        clearNZCV();
+        setCarry(registerA, tempA);
+        setOverflow(registerA, adder, tempA);
+        registerA = tempA & 0xFF;
+        setNZ(registerA);
+        programCounter += 3;
+    }
+    else
+    {
+        uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1]) % 0x2000;
+        uint8_t adder = memory[address];
+        uint8_t binaryTempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+        int tempA = (((registerA >> 4u) * 10) + (registerA & 0x0F)) + (processStatusRegister & 0b00000001) - 1 - (((adder >> 4u) * 10) + (adder & 0x0F));
+        clearNZCV();
+        setCarryDecimalSub(tempA);
+        setOverflow(registerA, adder, binaryTempA);
+        if (tempA < 0)
+        {
+            tempA += 100;
+        }
+        else
+        {
+            tempA %= 100;
+        }
+        registerA = ((tempA / 10) << 4u) + (tempA % 10);
+        setNZ(registerA);
+        programCounter += 3;
+    }
 }
 
 // SBC [nnnn+X]: Add carry to Accumulator then subtract 1 and [nnnn+X]. Flags nzcv
 void CPU::OP_FD()
 {
-    uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
-    uint8_t adder = memory[address];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
-    clearNZCV();
-    setCarry(registerA, tempA);
-    setOverflow(registerA, adder, tempA);
-    registerA = tempA & 0xFF;
-    setNZ(registerA);
-    programCounter += 3;
+    if ( processStatusRegister & 0b00001000 == 0)
+    {
+        uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
+        uint8_t adder = memory[address];
+        uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+        clearNZCV();
+        setCarry(registerA, tempA);
+        setOverflow(registerA, adder, tempA);
+        registerA = tempA & 0xFF;
+        setNZ(registerA);
+        programCounter += 3;
+    }
+    else
+    {
+        uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerX) % 0x2000;
+        uint8_t adder = memory[address];
+        uint8_t binaryTempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+        int tempA = (((registerA >> 4u) * 10) + (registerA & 0x0F)) + (processStatusRegister & 0b00000001) - 1 - (((adder >> 4u) * 10) + (adder & 0x0F));
+        clearNZCV();
+        setCarryDecimalSub(tempA);
+        setOverflow(registerA, adder, binaryTempA);
+        if (tempA < 0)
+        {
+            tempA += 100;
+        }
+        else
+        {
+            tempA %= 100;
+        }
+        registerA = ((tempA / 10) << 4u) + (tempA % 10);
+        setNZ(registerA);
+        programCounter += 3;
+    }
 }
 
 // SBC [nnnn+Y]: Add carry to Accumulator then subtract 1 and [nnnn+Y]. Flags nzcv
 void CPU::OP_F9()
 {
-    uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerY) % 0x2000;
-    uint8_t adder = memory[address];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder; 
-    clearNZCV();  
-    setCarry(registerA, tempA);
-    setOverflow(registerA, adder, tempA);
-    registerA = tempA & 0xFF;
-    setNZ(registerA);
-    programCounter += 3;
+    if ( processStatusRegister & 0b00001000 == 0)
+    {
+        uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerY) % 0x2000;
+        uint8_t adder = memory[address];
+        uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder; 
+        clearNZCV();  
+        setCarry(registerA, tempA);
+        setOverflow(registerA, adder, tempA);
+        registerA = tempA & 0xFF;
+        setNZ(registerA);
+        programCounter += 3;
+    }
+    else
+    {
+        uint16_t address = ((memory[programCounter + 2] << 8u) + memory[programCounter + 1] + registerY) % 0x2000;
+        uint8_t adder = memory[address];
+        uint8_t binaryTempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+        int tempA = (((registerA >> 4u) * 10) + (registerA & 0x0F)) + (processStatusRegister & 0b00000001) - 1 - (((adder >> 4u) * 10) + (adder & 0x0F));
+        clearNZCV();
+        setCarryDecimalSub(tempA);
+        setOverflow(registerA, adder, binaryTempA);
+        if (tempA < 0)
+        {
+            tempA += 100;
+        }
+        else
+        {
+            tempA %= 100;
+        }
+        registerA = ((tempA / 10) << 4u) + (tempA % 10);
+        setNZ(registerA);
+        programCounter += 3;
+    }
 }
 
 // SBC [word[nn+X]]: Add carry to Accumulator then subtract 1 and [word[nn+X]]. Flags nzcv
 void CPU::OP_E1()
 {
-    uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
-    uint8_t adder = memory[address];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;  
-    clearNZCV(); 
-    setCarry(registerA, tempA);
-    setOverflow(registerA, adder, tempA);
-    registerA = tempA & 0xFF;
-    setNZ(registerA);
-    programCounter += 2;
+    if ( processStatusRegister & 0b00001000 == 0)
+    {
+        uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
+        uint8_t adder = memory[address];
+        uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;  
+        clearNZCV(); 
+        setCarry(registerA, tempA);
+        setOverflow(registerA, adder, tempA);
+        registerA = tempA & 0xFF;
+        setNZ(registerA);
+        programCounter += 2;
+    }
+    else
+    {
+        uint16_t address = ((memory[memory[programCounter + 1] + registerX + 1] << 8u) + memory[memory[programCounter + 1] + registerX]) % 0x2000;
+        uint8_t adder = memory[address];
+        uint8_t binaryTempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+        int tempA = (((registerA >> 4u) * 10) + (registerA & 0x0F)) + (processStatusRegister & 0b00000001) - 1 - (((adder >> 4u) * 10) + (adder & 0x0F));
+        clearNZCV();
+        setCarryDecimalSub(tempA);
+        setOverflow(registerA, adder, binaryTempA);
+        if (tempA < 0)
+        {
+            tempA += 100;
+        }
+        else
+        {
+            tempA %= 100;
+        }
+        registerA = ((tempA / 10) << 4u) + (tempA % 10);
+        setNZ(registerA);
+        programCounter += 2;
+    }
 }
 
 // SBC [word[nn]+Y]: Add carry to Accumulator then subtract 1 and [word[nn]+Y]. Flags nzcv
 void CPU::OP_F1()
 {
-    uint16_t address = ((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]] + registerY) % 0x2000;
-    uint8_t adder = memory[address];
-    uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
-    clearNZCV();
-    setCarry(registerA, tempA);
-    setOverflow(registerA, adder, tempA);
-    registerA = tempA & 0xFF;
-    setNZ(registerA);
-    programCounter += 2;
+    if ( processStatusRegister & 0b00001000 == 0)
+    {
+        uint16_t address = ((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]] + registerY) % 0x2000;
+        uint8_t adder = memory[address];
+        uint8_t tempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;   
+        clearNZCV();
+        setCarry(registerA, tempA);
+        setOverflow(registerA, adder, tempA);
+        registerA = tempA & 0xFF;
+        setNZ(registerA);
+        programCounter += 2;
+    }
+    else
+    {
+        uint16_t address = ((memory[memory[programCounter + 1] + 1] << 8u) + memory[memory[programCounter + 1]] + registerY) % 0x2000;
+        uint8_t adder = memory[address];
+        uint8_t binaryTempA = (registerA + (processStatusRegister & 0b00000001)) - 1 - adder;
+        int tempA = (((registerA >> 4u) * 10) + (registerA & 0x0F)) + (processStatusRegister & 0b00000001) - 1 - (((adder >> 4u) * 10) + (adder & 0x0F));
+        clearNZCV();
+        setCarryDecimalSub(tempA);
+        setOverflow(registerA, adder, binaryTempA);
+        if (tempA < 0)
+        {
+            tempA += 100;
+        }
+        else
+        {
+            tempA %= 100;
+        }
+        registerA = ((tempA / 10) << 4u) + (tempA % 10);
+        setNZ(registerA);
+        programCounter += 2;
+    }
 }
 
 
