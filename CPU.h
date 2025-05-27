@@ -300,6 +300,10 @@ private:
 
     inline void setCarry(uint8_t &reg, uint8_t &tempRegister);
 
+    inline void setCarryDecimalAdd(int result);
+
+    inline void setCarryDecimalSub(int result);
+
     inline void setOverflow(uint8_t &reg, uint8_t &adderValue, uint8_t &tempRegister);
 
     inline void setNZ(uint8_t &reg);
