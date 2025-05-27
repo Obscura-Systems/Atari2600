@@ -1972,6 +1972,7 @@ void CPU::resetState()
     {
         memory[i] = 0x00;
     }
+
 }
 
 
@@ -2014,8 +2015,10 @@ void CPU::setMemory(uint16_t address, uint8_t value)
     memory[address%0x2000] = value;
 }
 
-
-
+uint16_t CPU::readMemory(uint16_t address)
+{
+    return memory[address];
+}
 
 
 

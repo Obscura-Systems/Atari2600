@@ -9,7 +9,14 @@ using namespace std;
 
 CPU cpu;
 
-uint8_t testByte = 0x00;
+uint8_t testByte = 0xFD;
+uint8_t address = 0x1A;
+uint16_t address16 = 0x1234;
+uint16_t word = 0x1334;
+uint8_t regOne = 0x03;
+uint8_t regTwo = 0x04;
+
+int counter = 0;
 
 int main(int argc,char **argv)
 {
@@ -31,7 +38,6 @@ class CPU_OP_TEST : public testing::Test
         CPU_OP_TEST()
         {
             cpu.resetState();
-            testByte = rand();
         }
         ~CPU_OP_TEST() override
         {
@@ -39,866 +45,826 @@ class CPU_OP_TEST : public testing::Test
         }
 };
 
+/*
+
+UNIT TESTS
+
+All variable combinations and outcomes should be tested
+and verified. Some edge cases are purposely avoided because
+they are not possible in a real world scenario (like overwriting
+the memory where the opcode is before the opcode is called.)
+
+*/
+
 // Register/Immediate to Register Transfer
 
 TEST_F(CPU_OP_TEST, OP_A8)                  // Y=A. NZ
 {
-
-    cpu.setMemory(0x0000, 0xA8); 
-    testByte = 0x00;          
-    cpu.registerA = testByte;              
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010);
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0xA8); 
-    testByte = 0x0F;          
-    cpu.registerA = testByte;              
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000);
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0xA8); 
-    testByte = 0x80;          
-    cpu.registerA = testByte;              
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);
-
+    for (int i = 0; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = i;
+        cpu.setMemory(0x0000, 0xA8); 
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;     
+        cpu.registerA = testByte;              
+        cpu.Cycle();                           
+        ASSERT_EQ(cpu.registerY, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister);
+    }
 }   
 TEST_F(CPU_OP_TEST, OP_AA)                  // X=A. NZ
 {
-    cpu.setMemory(0x0000, 0xAA); 
-    testByte = 0x00;       
-    cpu.registerA = testByte;              
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010);
-    cpu.resetState();    
-
-    cpu.setMemory(0x0000, 0xAA); 
-    testByte = 0x0F;       
-    cpu.registerA = testByte;              
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000);
-    cpu.resetState();  
-
-    cpu.setMemory(0x0000, 0xAA); 
-    testByte = 0x80;       
-    cpu.registerA = testByte;              
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);   
+    for (int i = 0; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = i;
+        cpu.setMemory(0x0000, 0xAA); 
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;     
+        cpu.registerA = testByte;              
+        cpu.Cycle();                           
+        ASSERT_EQ(cpu.registerX, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister);
+    }
 }
 TEST_F(CPU_OP_TEST, OP_BA)                  // X=S NZ
 {
-    cpu.setMemory(0x0000, 0xBA);   
-    testByte = 0x00;   
-    cpu.stackPointer = testByte;           
-    cpu.Cycle();                            
-    EXPECT_EQ(cpu.registerX, testByte);    
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0xBA);   
-    testByte = 0x0F;   
-    cpu.stackPointer = testByte;           
-    cpu.Cycle();                            
-    EXPECT_EQ(cpu.registerX, testByte);    
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0xBA);   
-    testByte = 0x80;   
-    cpu.stackPointer = testByte;           
-    cpu.Cycle();                            
-    EXPECT_EQ(cpu.registerX, testByte);    
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
+    for (int i = 0; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = i;
+        cpu.setMemory(0x0000, 0xBA);   
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;   
+        cpu.stackPointer = testByte;           
+        cpu.Cycle();                            
+        ASSERT_EQ(cpu.registerX, testByte);    
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+    }
 }
 TEST_F(CPU_OP_TEST, OP_98)                  // A=Y NZ
 {
-    cpu.setMemory(0x0000, 0x98);  
-    testByte = 0x00;           
-    cpu.registerY = testByte;             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0x98);  
-    testByte = 0x0F;           
-    cpu.registerY = testByte;             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0x98);  
-    testByte = 0x80;           
-    cpu.registerY = testByte;             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
+    for (int i = 0; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = i;
+        cpu.setMemory(0x0000, 0x98);  
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;             
+        cpu.registerY = testByte;             
+        cpu.Cycle();                           
+        ASSERT_EQ(cpu.registerA, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+    }
 }
 TEST_F(CPU_OP_TEST, OP_8A)                  // A=X NZ
 {
-    cpu.setMemory(0x0000, 0x8A);   
-    testByte = 0x00;        
-    cpu.registerX = testByte;             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerA, testByte);  
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
-
-    cpu.setMemory(0x0000, 0x8A);   
-    testByte = 0x0F;        
-    cpu.registerX = testByte;             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerA, testByte);  
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();  
-
-    cpu.setMemory(0x0000, 0x8A);   
-    testByte = 0x80;        
-    cpu.registerX = testByte;             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerA, testByte);  
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
+    for (int i = 0; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = i;
+        cpu.setMemory(0x0000, 0x8A);   
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;        
+        cpu.registerX = testByte;             
+        cpu.Cycle();                           
+        ASSERT_EQ(cpu.registerA, testByte);  
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+    }
 }
 TEST_F(CPU_OP_TEST, OP_9A)                  // S=X
 {
-    cpu.setMemory(0x0000, 0x9A);           
-    cpu.registerX = testByte;             
-    cpu.Cycle();                            
-    EXPECT_EQ(cpu.stackPointer, testByte);    
+    for (int i = 0; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = i;
+        cpu.setMemory(0x0000, 0x9A);         
+        cpu.registerX = testByte;             
+        cpu.Cycle();                            
+        ASSERT_EQ(cpu.stackPointer, testByte);   
+    }
 }
 TEST_F(CPU_OP_TEST, OP_A9)                  // A=nn NZ
 {
-    cpu.setMemory(0x0000, 0xA9);
-    testByte = 0x00;            
-    cpu.setMemory(0x0001 ,testByte);             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerA, testByte);   
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
-
-    cpu.setMemory(0x0000, 0xA9);
-    testByte = 0x0F;            
-    cpu.setMemory(0x0001 ,testByte);             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerA, testByte);   
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0xA9);
-    testByte = 0x80;            
-    cpu.setMemory(0x0001 ,testByte);             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerA, testByte);   
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
+    for (int i = 0; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = i;
+        cpu.setMemory(0x0000, 0xA9);
+        uint8_t expectedStatusRegister = (testByte== 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;            
+        cpu.setMemory(0x0001 ,testByte);             
+        cpu.Cycle();                           
+        ASSERT_EQ(cpu.registerA, testByte);   
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+    }
 }
 TEST_F(CPU_OP_TEST, OP_A2)                  // X=nn NZ
 {
-    cpu.setMemory(0x0000, 0xA2);
-    testByte = 0x00;            
-    cpu.setMemory(0x0001 ,testByte);             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerX, testByte);   
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
-
-    cpu.setMemory(0x0000, 0xA2);
-    testByte = 0x0F;            
-    cpu.setMemory(0x0001 ,testByte);             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerX, testByte);   
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0xA2);
-    testByte = 0x80;            
-    cpu.setMemory(0x0001 ,testByte);             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerX, testByte);   
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);     
+    for (int i = 0; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = i;
+        cpu.setMemory(0x0000, 0xA2);
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;            
+        cpu.setMemory(0x0001 ,testByte);             
+        cpu.Cycle();                           
+        ASSERT_EQ(cpu.registerX, testByte);   
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister);   
+    }
 }
 TEST_F(CPU_OP_TEST, OP_A0)                  // Y=nn NZ
 {
-    cpu.setMemory(0x0000, 0xA0);
-    testByte = 0x00;            
-    cpu.setMemory(0x0001 ,testByte);             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerY, testByte);   
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
-
-    cpu.setMemory(0x0000, 0xA0);
-    testByte = 0x0F;            
-    cpu.setMemory(0x0001 ,testByte);             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerY, testByte);   
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0xA0);
-    testByte = 0x80;            
-    cpu.setMemory(0x0001 ,testByte);             
-    cpu.Cycle();                           
-    EXPECT_EQ(cpu.registerY, testByte);   
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);   
+    for (int i = 0; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = i;
+        cpu.setMemory(0x0000, 0xA0);
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;            
+        cpu.setMemory(0x0001 ,testByte);             
+        cpu.Cycle();                           
+        ASSERT_EQ(cpu.registerY, testByte);   
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister);  
+    }
 }
 
 // Load Register from Memory
 
 TEST_F(CPU_OP_TEST, OP_A5)                  // A=[nn] NZ
 {
-    cpu.setMemory(0x0000, 0xA5);
-    uint8_t address = rand() % (0xFE - 0x04) + 0x04;
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
+    for (int i = 2; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = 0x00;
+        address = i;
+        cpu.setMemory(0x0000, 0xA5);
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address);
+        cpu.setMemory(address, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerA, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xA5);
-    address = rand() % (0xFE - 0x04) + 0x04;
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();  
+        cpu.resetState();
+        testByte = 0x0F;
+        address = i;
+        cpu.setMemory(0x0000, 0xA5);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address);
+        cpu.setMemory(address, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerA, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xA5);
-    address = rand() % (0xFE - 0x04) + 0x04;
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
+        cpu.resetState();
+        testByte = 0xF0;
+        address = i;
+        cpu.setMemory(0x0000, 0xA5);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address);
+        cpu.setMemory(address, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerA, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+    }
 }
 TEST_F(CPU_OP_TEST, OP_B5)                  // A=[nn+X] NZ
 {
-    cpu.setMemory(0x0000, 0xB5);
-    cpu.registerX = rand();
-    uint8_t address = rand();
-    while (cpu.registerX + address <=3)
+    for (int j = 2; j < 256; j++)
     {
-        address = rand();
-    }
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory((address + cpu.registerX), testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
+        for (int k = 0; k < 256; k++)
+        {
+            if ( ((j + k) % 0x0100) > 1) 
+            {
+                cpu.resetState();
+                testByte = 0x00;
+                address = j;
+                cpu.registerX = k;
+                cpu.setMemory(0x0000, 0xB5);
+                uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address);
+                cpu.setMemory((address + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerA, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xB5);
-    cpu.registerX = rand();
-    address = rand();
-    while (cpu.registerX + address <=3)
-    {
-        address = rand();
-    }
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory((address + cpu.registerX), testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();  
+                cpu.resetState();
+                testByte = 0x0F;
+                address = j;
+                cpu.registerX = k;
+                cpu.setMemory(0x0000, 0xB5);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address);
+                cpu.setMemory((address + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerA, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xB5);
-    cpu.registerX = rand();
-    address = rand();
-    while (cpu.registerX + address <=3)
-    {
-        address = rand();
+                cpu.resetState();
+                testByte = 0xF0;
+                address = j;
+                cpu.registerX = k;
+                cpu.setMemory(0x0000, 0xB5);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address);
+                cpu.setMemory((address + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerA, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+            }
+        }
     }
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory((address + cpu.registerX), testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);
 }
 TEST_F(CPU_OP_TEST, OP_AD)                  // A=[nnnn] NZ
 {
-    cpu.setMemory(0x0000, 0xAD);
-    uint16_t address = rand() % (0xFFFE - 0x0004) + 0x0004;
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
+    for (int j = 3; j < 0x1FFF; j++)
+    {
+        cpu.resetState();
+        testByte = 0x00;    
+        address16 = j;
+        cpu.setMemory(0x0000, 0xAD);
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.setMemory(address16, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerA, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xAD);
-    address = rand() % (0xFFFE - 0x0004) + 0x0004;
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();  
+        cpu.resetState();
+        testByte = 0x0F;    
+        address16 = j;
+        cpu.setMemory(0x0000, 0xAD);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.setMemory(address16, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerA, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xAD);
-    address = rand() % (0xFFFE - 0x0004) + 0x0004;
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);
+        cpu.resetState();
+        testByte = 0xF0;    
+        address16 = j;
+        cpu.setMemory(0x0000, 0xAD);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.setMemory(address16, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerA, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+    }
 }
 TEST_F(CPU_OP_TEST, OP_BD)                  // A=[nnnn+X] NZ
 {
-    cpu.setMemory(0x0000, 0xBD);
-    uint16_t address = rand();
-    cpu.registerX = rand();
-    while (cpu.registerX + address <= 0x03 || cpu.registerX + address == 0xFFFF)
+    for (int i = 0; i < 256; i++)
     {
-        address = rand();
-    }
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerX, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState(); 
+        for (int j = 0x0003; j < 0x1FFF; j++)
+        {
+            if (((i + j) % 0x2000) > 2)
+            {
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0x00;
+                address16 = j;
+                cpu.registerX = i;
+                cpu.setMemory(0x0000, 0xBD);
+                uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerA, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xBD);
-    address = rand();
-    cpu.registerX = rand();
-    while (cpu.registerX + address <= 0x03 || cpu.registerX + address == 0xFFFF)
-    {
-        address = rand();
-    }
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerX, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState(); 
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0x0F;
+                address16 = j;
+                cpu.registerX = i;
+                cpu.setMemory(0x0000, 0xBD);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerA, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xBD);
-    address = rand();
-    cpu.registerX = rand();
-    while (cpu.registerX + address <= 0x03 || cpu.registerX + address == 0xFFFF)
-    {
-        address = rand();
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0xF0;
+                address16 = j;
+                cpu.registerX = i;
+                cpu.setMemory(0x0000, 0xBD);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerA, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+            }
+        }
     }
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerX, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
 }
 TEST_F(CPU_OP_TEST, OP_B9)                  // A=[nnnn+Y] NZ
 {
-    cpu.setMemory(0x0000, 0xB9);
-    uint16_t address = rand();
-    cpu.registerY = rand();
-    while (cpu.registerY + address <= 0x03 || cpu.registerX + address == 0xFFFF)
+    for (int i = 0; i < 256; i++)
     {
-        address = rand();
-    }
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerY, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();
+        for (int j = 0x0003; j < 0x1FFF; j++)
+        {
+            if (((i + j) % 0x2000) > 2)
+            {
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0x00;
+                address16 = j;
+                cpu.registerY = i;
+                cpu.setMemory(0x0000, 0xB9);
+                uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerY), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerA, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xB9);
-    address = rand();
-    cpu.registerY = rand();
-    while (cpu.registerY + address <= 0x03 || cpu.registerX + address == 0xFFFF)
-    {
-        address = rand();
-    }
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerY, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState(); 
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0x0F;
+                address16 = j;
+                cpu.registerY = i;
+                cpu.setMemory(0x0000, 0xB9);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerY), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerA, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xB9);
-    address = rand();
-    cpu.registerY = rand();
-    while (cpu.registerY + address <= 0x03 || cpu.registerX + address == 0xFFFF)
-    {
-        address = rand();
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0xF0;
+                address16 = j;
+                cpu.registerY = i;
+                cpu.setMemory(0x0000, 0xB9);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerY), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerA, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+            }
+        }
     }
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerY, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
 }
 TEST_F(CPU_OP_TEST, OP_A1)                  // A=[WORD[nn+X]] NZ
 {
-    cpu.setMemory(0x0000, 0xA1);
-    uint8_t address = rand();
-    uint16_t word = rand() % (0xFFFE - 0x0004) + 0x0004;
-    cpu.registerX = rand();
-    while (cpu.registerX + address <= 0x03 || cpu.registerX + address == 0xFF)
+    address = 0x02;
+    for (int i = 0; i < 0xFD; i++)
     {
-        address = rand();
-    }
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address + cpu.registerX + 1, (word >> 8u));
-    cpu.setMemory(address + cpu.registerX, word);
-    cpu.setMemory(word, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();
+        for (int j = 0x0100; j < 0x2000; j++)
+        {
+            cpu.resetState();
+            cpu.setMemory(0x0000, 0xA1);
+            testByte = 0x00;
+            cpu.registerX = i;
+            word = j;
+            uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+            cpu.setMemory(0x0001, address);
+            cpu.setMemory(address + cpu.registerX + 1, (word >> 8u));
+            cpu.setMemory(address + cpu.registerX, word);
+            cpu.setMemory(word, testByte);
+            cpu.Cycle();
+            ASSERT_EQ(cpu.registerA, testByte);
+            ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xA1);
-    address = rand();
-    word = rand() % (0xFFFE - 0x0004) + 0x0004;
-    cpu.registerX = rand();
-    while (cpu.registerX + address <= 0x03 || cpu.registerX + address == 0xFF)
-    {
-        address = rand();
-    }
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address + cpu.registerX + 1, (word >> 8u));
-    cpu.setMemory(address + cpu.registerX, word);
-    cpu.setMemory(word, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();
+            cpu.resetState();
+            cpu.setMemory(0x0000, 0xA1);
+            testByte = 0x0F;
+            expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+            cpu.setMemory(0x0001, address);
+            cpu.setMemory(address + cpu.registerX + 1, (word >> 8u));
+            cpu.setMemory(address + cpu.registerX, word);
+            cpu.setMemory(word, testByte);
+            cpu.Cycle();
+            ASSERT_EQ(cpu.registerA, testByte);
+            ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xA1);
-    address = rand();
-    word = rand() % (0xFFFE - 0x0004) + 0x0004;
-    cpu.registerX = rand();
-    while (cpu.registerX + address <= 0x03 || cpu.registerX + address == 0xFF)
-    {
-        address = rand();
+            cpu.resetState();
+            cpu.setMemory(0x0000, 0xA1);
+            testByte = 0xF0;
+            expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+            cpu.setMemory(0x0001, address);
+            cpu.setMemory(address + cpu.registerX + 1, (word >> 8u));
+            cpu.setMemory(address + cpu.registerX, word);
+            cpu.setMemory(word, testByte);
+            cpu.Cycle();
+            ASSERT_EQ(cpu.registerA, testByte);
+            ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+        }
     }
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address + cpu.registerX + 1, (word >> 8u));
-    cpu.setMemory(address + cpu.registerX, word);
-    cpu.setMemory(word, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);
 }
 TEST_F(CPU_OP_TEST, OP_B1)                  // A=[WORD[nn]+Y] NZ
 {
-    cpu.setMemory(0x0000, 0xB1);
-    uint8_t address = rand();
-    uint16_t word = rand() % (0xFFFE - 0x0004) + 0x0004;
-    cpu.registerY = rand();
-    while (cpu.registerY + word <= 0x03 || cpu.registerY + word == 0xFFFF)
+    for (int i = 2; i < 0x100; i++)
     {
-        cpu.registerY = rand();
+        for (int j = 0x0100; j < 0x1FFF; j++)
+        {
+            cpu.resetState();
+            cpu.setMemory(0x0000, 0xB1);
+            address = i;
+            word = j;
+            cpu.registerY = 0x01;
+            testByte = 0xAF;
+            uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+            cpu.setMemory(0x0001, address);
+            cpu.setMemory(address + 1, (word >> 8u));
+            cpu.setMemory(address , word);
+            cpu.setMemory(word + cpu.registerY, testByte);
+            cpu.Cycle();
+            ASSERT_EQ(cpu.registerA, testByte);
+            ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+        }
     }
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address + 1, (word >> 8u));
-    cpu.setMemory(address , word);
-    cpu.setMemory(word + cpu.registerY, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0xB1);
-    address = rand();
-    word = rand() % (0xFFFE - 0x0004) + 0x0004;
-    cpu.registerY = rand();
-    while (cpu.registerY + word <= 0x03 || cpu.registerY + word == 0xFFFF)
-    {
-        cpu.registerY = rand();
-    }
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address + 1, (word >> 8u));
-    cpu.setMemory(address , word);
-    cpu.setMemory(word + cpu.registerY, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();
-
-    cpu.setMemory(0x0000, 0xB1);
-    address = rand();
-    word = rand() % (0xFFFE - 0x0004) + 0x0004;
-    cpu.registerY = rand();
-    while (cpu.registerY + word <= 0x03 || cpu.registerY + word == 0xFFFF)
-    {
-        cpu.registerY = rand();
-    }
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address + 1, (word >> 8u));
-    cpu.setMemory(address , word);
-    cpu.setMemory(word + cpu.registerY, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerA, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
 }
 TEST_F(CPU_OP_TEST, OP_A6)                  // X=[nn] NZ
 {
-    cpu.setMemory(0x0000, 0xA6);
-    uint8_t address = rand() % (0xFE - 0x04) + 0x04;
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
+    for (int i = 2; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = 0x00;
+        address = i;
+        cpu.setMemory(0x0000, 0xA6);
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address);
+        cpu.setMemory(address, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerX, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xA6);
-    address = rand() % (0xFE - 0x04) + 0x04;
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();  
+        cpu.resetState();
+        testByte = 0x0F;
+        address = i;
+        cpu.setMemory(0x0000, 0xA6);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address);
+        cpu.setMemory(address, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerX, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xA6);
-    address = rand() % (0xFE - 0x04) + 0x04;
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
+        cpu.resetState();
+        testByte = 0xF0;
+        address = i;
+        cpu.setMemory(0x0000, 0xA6);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address);
+        cpu.setMemory(address, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerX, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+    }
 }
 TEST_F(CPU_OP_TEST, OP_B6)                  // X=[nn+Y] NZ
 {
-    cpu.setMemory(0x0000, 0xB6);
-    cpu.registerY = rand();
-    uint8_t address = rand();
-    while (cpu.registerY + address <=3)
+    for (int j = 2; j < 256; j++)
     {
-        address = rand();
-    }
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory((address + cpu.registerY), testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
+        for (int k = 0; k < 256; k++)
+        {
+            if ( ((j + k) % 0x0100) > 1) 
+            {
+                cpu.resetState();
+                testByte = 0x00;
+                address = j;
+                cpu.registerY = k;
+                cpu.setMemory(0x0000, 0xB6);
+                uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address);
+                cpu.setMemory((address + cpu.registerY), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerX, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xB6);
-    cpu.registerY = rand();
-    address = rand();
-    while (cpu.registerY + address <=3)
-    {
-        address = rand();
-    }
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory((address + cpu.registerY), testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();  
+                cpu.resetState();
+                testByte = 0x0F;
+                address = j;
+                cpu.registerY = k;
+                cpu.setMemory(0x0000, 0xB6);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address);
+                cpu.setMemory((address + cpu.registerY), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerX, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xB6);
-    cpu.registerY = rand();
-    address = rand();
-    while (cpu.registerY + address <=3)
-    {
-        address = rand();
+                cpu.resetState();
+                testByte = 0xF0;
+                address = j;
+                cpu.registerY = k;
+                cpu.setMemory(0x0000, 0xB6);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address);
+                cpu.setMemory((address + cpu.registerY), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerX, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+            }
+        }
     }
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory((address + cpu.registerY), testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);
 }
 TEST_F(CPU_OP_TEST, OP_AE)                  // X=[nnnn] NZ
 {
-    cpu.setMemory(0x0000, 0xAE);
-    uint16_t address = rand() % (0xFFFE - 0x0004) + 0x0004;
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
+    for (int j = 3; j < 0x1FFF; j++)
+    {
+        cpu.resetState();
+        testByte = 0x00;    
+        address16 = j;
+        cpu.setMemory(0x0000, 0xAE);
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.setMemory(address16, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerX, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xAE);
-    address = rand() % (0xFFFE - 0x0004) + 0x0004;
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();  
+        cpu.resetState();
+        testByte = 0x0F;    
+        address16 = j;
+        cpu.setMemory(0x0000, 0xAE);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.setMemory(address16, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerX, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xAE);
-    address = rand() % (0xFFFE - 0x0004) + 0x0004;
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);
+        cpu.resetState();
+        testByte = 0xF0;    
+        address16 = j;
+        cpu.setMemory(0x0000, 0xAE);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.setMemory(address16, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerX, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+    }
 }
 TEST_F(CPU_OP_TEST, OP_BE)                  // X=[nnnn+Y] NZ
 {
-    cpu.setMemory(0x0000, 0xBE);
-    uint16_t address = rand();
-    cpu.registerY = rand();
-    while (cpu.registerY + address <= 0x03 || cpu.registerY + address == 0xFFFF)
+    for (int i = 0; i < 256; i++)
     {
-        address = rand();
-    }
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerY, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState(); 
+        for (int j = 0x0003; j < 0x1FFF; j++)
+        {
+            if (((i + j) % 0x2000) > 2)
+            {
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0x00;
+                address16 = j;
+                cpu.registerY = i;
+                cpu.setMemory(0x0000, 0xBE);
+                uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerY), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerX, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xBE);
-    address = rand();
-    cpu.registerY = rand();
-    while (cpu.registerY + address <= 0x03 || cpu.registerY + address == 0xFFFF)
-    {
-        address = rand();
-    }
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerY, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState(); 
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0x0F;
+                address16 = j;
+                cpu.registerY = i;
+                cpu.setMemory(0x0000, 0xBE);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerY), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerX, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xBE);
-    address = rand();
-    cpu.registerY = rand();
-    while (cpu.registerY + address <= 0x03 || cpu.registerY + address == 0xFFFF)
-    {
-        address = rand();
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0xF0;
+                address16 = j;
+                cpu.registerY = i;
+                cpu.setMemory(0x0000, 0xBE);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerY), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerX, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+            }
+        }
     }
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerY, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerX, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
 }
 TEST_F(CPU_OP_TEST, OP_A4)                  // Y=[nn] NZ
 {
-    cpu.setMemory(0x0000, 0xA4);
-    uint8_t address = rand() % (0xFE - 0x04) + 0x04;
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
+   for (int i = 2; i < 256; i++)
+    {
+        cpu.resetState();
+        testByte = 0x00;
+        address = i;
+        cpu.setMemory(0x0000, 0xA4);
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address);
+        cpu.setMemory(address, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerY, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xA4);
-    address = rand() % (0xFE - 0x04) + 0x04;
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();  
+        cpu.resetState();
+        testByte = 0x0F;
+        address = i;
+        cpu.setMemory(0x0000, 0xA4);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address);
+        cpu.setMemory(address, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerY, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xA4);
-    address = rand() % (0xFE - 0x04) + 0x04;
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);
+        cpu.resetState();
+        testByte = 0xF0;
+        address = i;
+        cpu.setMemory(0x0000, 0xA4);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address);
+        cpu.setMemory(address, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerY, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+    }
 }
 TEST_F(CPU_OP_TEST, OP_B4)                  // Y=[nn+X] NZ
 {
-    cpu.setMemory(0x0000, 0xB4);
-    cpu.registerX = rand();
-    uint8_t address = rand();
-    while (cpu.registerX + address <=3)
+    for (int j = 2; j < 256; j++)
     {
-        address = rand();
-    }
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory((address + cpu.registerX), testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
+        for (int k = 0; k < 256; k++)
+        {
+            if ( ((j + k) % 0x0100) > 1) 
+            {
+                cpu.resetState();
+                testByte = 0x00;
+                address = j;
+                cpu.registerX = k;
+                cpu.setMemory(0x0000, 0xB4);
+                uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address);
+                cpu.setMemory((address + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerY, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xB4);
-    cpu.registerX = rand();
-    address = rand();
-    while (cpu.registerX + address <=3)
-    {
-        address = rand();
-    }
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory((address + cpu.registerX), testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();  
+                cpu.resetState();
+                testByte = 0x0F;
+                address = j;
+                cpu.registerX = k;
+                cpu.setMemory(0x0000, 0xB4);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address);
+                cpu.setMemory((address + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerY, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xB4);
-    cpu.registerX = rand();
-    address = rand();
-    while (cpu.registerX + address <=3)
-    {
-        address = rand();
+                cpu.resetState();
+                testByte = 0xF0;
+                address = j;
+                cpu.registerX = k;
+                cpu.setMemory(0x0000, 0xB4);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address);
+                cpu.setMemory((address + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerY, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+            }
+        }
     }
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory((address + cpu.registerX), testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);
 }
 TEST_F(CPU_OP_TEST, OP_AC)                  // Y=[nnnn] NZ
 {
-    cpu.setMemory(0x0000, 0xAC);
-    uint16_t address = rand() % (0xFFFE - 0x0004) + 0x0004;
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState();  
+   for (int j = 3; j < 0x1FFF; j++)
+    {
+        cpu.resetState();
+        testByte = 0x00;    
+        address16 = j;
+        cpu.setMemory(0x0000, 0xAC);
+        uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.setMemory(address16, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerY, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xAC);
-    address = rand() % (0xFFFE - 0x0004) + 0x0004;
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState();  
+        cpu.resetState();
+        testByte = 0x0F;    
+        address16 = j;
+        cpu.setMemory(0x0000, 0xAC);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.setMemory(address16, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerY, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xAC);
-    address = rand() % (0xFFFE - 0x0004) + 0x0004;
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000);
+        cpu.resetState();
+        testByte = 0xF0;    
+        address16 = j;
+        cpu.setMemory(0x0000, 0xAC);
+        expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000;  
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.setMemory(address16, testByte);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.registerY, testByte);
+        ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+    }
 }
 TEST_F(CPU_OP_TEST, OP_BC)                  // Y=[nnnn+X] NZ
 {
-    cpu.setMemory(0x0000, 0xBC);
-    uint16_t address = rand();
-    cpu.registerX = rand();
-    while (cpu.registerX + address <= 0x03 || cpu.registerX + address == 0xFFFF)
+    for (int i = 0; i < 256; i++)
     {
-        address = rand();
-    }
-    testByte = 0x00;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerX, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100010); 
-    cpu.resetState(); 
+        for (int j = 0x0003; j < 0x1FFF; j++)
+        {
+            if (((i + j) % 0x2000) > 2)
+            {
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0x00;
+                address16 = j;
+                cpu.registerX = i;
+                cpu.setMemory(0x0000, 0xBC);
+                uint8_t expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerY, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xBC);
-    address = rand();
-    cpu.registerX = rand();
-    while (cpu.registerX + address <= 0x03 || cpu.registerX + address == 0xFFFF)
-    {
-        address = rand();
-    }
-    testByte = 0x0F;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerX, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b00100000); 
-    cpu.resetState(); 
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0x0F;
+                address16 = j;
+                cpu.registerX = i;
+                cpu.setMemory(0x0000, 0xBC);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerY, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
 
-    cpu.setMemory(0x0000, 0xBC);
-    address = rand();
-    cpu.registerX = rand();
-    while (cpu.registerX + address <= 0x03 || cpu.registerX + address == 0xFFFF)
-    {
-        address = rand();
+                cpu.resetState();
+                cpu.registerA = 0xCC;
+                testByte = 0xF0;
+                address16 = j;
+                cpu.registerX = i;
+                cpu.setMemory(0x0000, 0xBC);
+                expectedStatusRegister = (testByte == 0) ? (testByte & 0b10000000) | 0b00100010 : (testByte & 0b10000000) | 0b00100000; 
+                cpu.setMemory(0x0001, address16);
+                cpu.setMemory(0x0002, (address16 >> 8u));
+                cpu.setMemory((address16 + cpu.registerX), testByte);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.registerY, testByte);
+                ASSERT_EQ(cpu.processStatusRegister, expectedStatusRegister); 
+            }
+        }
     }
-    testByte = 0x80;
-    cpu.setMemory(0x0001, address);
-    cpu.setMemory(0x0002, (address >> 8u));
-    cpu.setMemory(address + cpu.registerX, testByte);
-    cpu.Cycle();
-    EXPECT_EQ(cpu.registerY, testByte);
-    EXPECT_EQ(cpu.processStatusRegister, 0b10100000); 
 }
 
 // Store Register in Memory
 
 TEST_F(CPU_OP_TEST, OP_85)                  // [nn]=A
 {
-
+    for (int i = 1; i < 256; i++)
+    {
+        cpu.resetState();
+        cpu.setMemory(0x0000, 0x85);
+        uint8_t previousStatusRegister = cpu.processStatusRegister;
+        testByte = 0xAC;
+        cpu.registerA = testByte;
+        address = i;
+        cpu.setMemory(0x0001, address);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.readMemory(address), testByte);
+        ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+    }
 }
+
 TEST_F(CPU_OP_TEST, OP_95)                  // [nn+X]=A
 {
 

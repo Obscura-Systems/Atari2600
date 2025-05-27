@@ -14,7 +14,7 @@ public:
     void resetState();
     void reportStatus();
     void setMemory(uint16_t address, uint8_t value);
-
+    uint16_t readMemory(uint16_t address);
 
     // Registers
     uint8_t registerA{0x00};                    // Accumulator
