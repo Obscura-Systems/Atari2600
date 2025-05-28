@@ -57,7 +57,7 @@ the memory where the opcode is before the opcode is called.)
 */
 
 // Register/Immediate to Register Transfer
-/*
+
 TEST_F(CPU_OP_TEST, OP_A8)                  // Y=A. NZ
 {
     for (int i = 0; i < 256; i++)
@@ -1099,40 +1099,43 @@ TEST_F(CPU_OP_TEST, OP_8C)                  // [nnnn]=Y
     }
 }
 
-*/
-
 // Push/Pull
 
 TEST_F(CPU_OP_TEST, OP_48)                  // [S]=A, S=S-1
 {
     cpu.resetState();
-    cpu.setMemory(0x0000, 0xA9);    // LDA #nn (0xFF)
-    cpu.setMemory(0x0001, 0xFF);
-    cpu.setMemory(0x0002, 0xAA);    // TAX
-    cpu.setMemory(0x0003, 0x48);    // PUSH A
-    cpu.setMemory(0x0004, 0xCA);    // DEC X
-    cpu.setMemory(0x0005, 0x2A);    // RCL A
-    cpu.setMemory(0x0006, 0xE0);    // CMP X - #nn (0x00)
-    cpu.setMemory(0x0007, 0x00);
-    cpu.setMemory(0x0008, 0xD0);    // JZ dd (0xFB) {Is treated as signed, so really -5};
-    cpu.setMemory(0x0009, 0xFB);
-    for (int i = 0; i < 1850; i++)
-    {
-        cpu.Cycle();
-    }
-    cpu.reportStatus();
+    cpu.registerA = 0xFF;
+    cpu.setMemory(0x0000, 0x48);
+    cpu.Cycle();
+    ASSERT_EQ(cpu.registerA, cpu.readMemory(cpu.stackPointer + 0x0101));
 }
 TEST_F(CPU_OP_TEST, OP_08)                  // [S]=P, S=S-1 (flags)
 {
-
+    cpu.resetState();
+    cpu.setMemory(0x0000, 0x08);
+    cpu.Cycle();
+    ASSERT_EQ(cpu.readMemory(cpu.stackPointer + 0x0101), cpu.processStatusRegister | 0b00110000);
+    ASSERT_EQ(cpu.stackPointer, 0xFE);
 }
 TEST_F(CPU_OP_TEST, OP_68)                  // S=S+1, A=[S]
 {
-
+    cpu.resetState();
+    cpu.setMemory(0x0000, 0x68);
+    cpu.setMemory(0x01FF, 0b10110001);
+    --cpu.stackPointer;
+    cpu.Cycle();
+    ASSERT_EQ(cpu.registerA, 0b10110001);
+    ASSERT_EQ(cpu.stackPointer, 0xFF);
 }
 TEST_F(CPU_OP_TEST, OP_28)                  // S=S+1, P=[S] (flags)
 {
-
+    cpu.resetState();
+    cpu.setMemory(0x0000, 0x28);
+    cpu.setMemory(0x01FF, 0b10110001);
+    --cpu.stackPointer;
+    cpu.Cycle();
+    ASSERT_EQ(cpu.processStatusRegister, 0b10100001);
+    ASSERT_EQ(cpu.stackPointer, 0xFF);
 }
 
 // Add memory to accumulator with carry

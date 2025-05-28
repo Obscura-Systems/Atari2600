@@ -633,9 +633,8 @@ void CPU::OP_48()
 // PHP: Push P. Writes 1 to B and unused flags.
 void CPU::OP_08()
 {
-    uint8_t address = stackPointer + 0x0100;
-    memory[address] = processStatusRegister;
-    processStatusRegister |= 0b00110000;
+    uint16_t address = stackPointer + 0x0100;
+    memory[address] = processStatusRegister | 0b00110000;
     --stackPointer;
     ++programCounter;
 }
@@ -644,7 +643,7 @@ void CPU::OP_08()
 void CPU::OP_68()
 {
     ++stackPointer;
-    uint8_t address = stackPointer + 0x0100;
+    uint16_t address = stackPointer + 0x0100;
     registerA = memory[address];
     setNZ(registerA);
     ++programCounter;
@@ -654,7 +653,7 @@ void CPU::OP_68()
 void CPU::OP_28()
 {
     ++stackPointer;
-    uint8_t address = stackPointer + 0x0100;
+    uint16_t address = stackPointer + 0x0100;
     // Mask both registers and then or them to ensure B and unused do not change.
     uint8_t maskedProcessRegister = processStatusRegister & 0b00110000;
     uint8_t maskedMemory = memory[address] & 0b11001111;
