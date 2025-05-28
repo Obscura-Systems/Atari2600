@@ -864,54 +864,239 @@ TEST_F(CPU_OP_TEST, OP_85)                  // [nn]=A
         ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
     }
 }
-
 TEST_F(CPU_OP_TEST, OP_95)                  // [nn+X]=A
 {
-
+    for (int i = 1; i < 256; i++)
+    {
+        for (int j = 1; j < 256; j++)
+        {
+            if( (i + j) % 0x100 > 1)
+            {
+                cpu.resetState();
+                cpu.setMemory(0x0000, 0x95);
+                uint8_t previousStatusRegister = cpu.processStatusRegister;
+                testByte = 0xAC;
+                cpu.registerA = testByte;
+                cpu.registerX = j;
+                address = i;
+                cpu.setMemory(0x0001, address);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.readMemory(address + cpu.registerX), testByte);
+                ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+            }
+        }
+    }
 }
 TEST_F(CPU_OP_TEST, OP_8D)                  // [nnnn]=A
 {
-
+    for (int i = 3; i < 0x1FFF; i++)
+    {
+        cpu.resetState();
+        cpu.setMemory(0x0000, 0x8D);
+        uint8_t previousStatusRegister = cpu.processStatusRegister;
+        testByte = 0xAC;
+        cpu.registerA = testByte;
+        address16 = i;
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.Cycle();
+        ASSERT_EQ(cpu.readMemory(address16), testByte);
+        ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+    }
 }
 TEST_F(CPU_OP_TEST, OP_9D)                  // [nnnn+X]=A
 {
-
+    for (int i = 2; i < 0x1FFE; i++)
+    {
+        cpu.resetState();
+        cpu.setMemory(0x0000, 0x9D);
+        uint8_t previousStatusRegister = cpu.processStatusRegister;
+        testByte = 0xAC;
+        cpu.registerA = testByte;
+        address16 = i;
+        cpu.registerX = 0x01;
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.Cycle();
+        ASSERT_EQ(cpu.readMemory(address16 + cpu.registerX), testByte);
+        ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+    }
 }
 TEST_F(CPU_OP_TEST, OP_99)                  // [nnnn+Y]=A
 {
-
+    for (int i = 2; i < 0x1FFE; i++)
+    {
+        cpu.resetState();
+        cpu.setMemory(0x0000, 0x99);
+        uint8_t previousStatusRegister = cpu.processStatusRegister;
+        testByte = 0xAC;
+        cpu.registerA = testByte;
+        address16 = i;
+        cpu.registerY = 0x01;
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.Cycle();
+        ASSERT_EQ(cpu.readMemory(address16 + cpu.registerY), testByte);
+        ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+    }
 }
 TEST_F(CPU_OP_TEST, OP_81)                  // [WORD[nn+x]]=A
 {
-
+    for (int i = 1; i < 0xFE; i++)
+    {
+        for (int j = 0x0100; j < 0x2000; j++)
+        {
+            cpu.resetState();
+            cpu.setMemory(0x0000, 0x81);
+            uint8_t previousStatusRegister = cpu.processStatusRegister;
+            testByte = 0xAC;
+            address = i;
+            cpu.registerX = 0x01;
+            word = j;
+            cpu.registerA = testByte;
+            cpu.setMemory(0x0001, address);
+            cpu.setMemory(address + cpu.registerX + 1, (word >> 8u));
+            cpu.setMemory(address + cpu.registerX, word);
+            cpu.Cycle();
+            ASSERT_EQ(cpu.readMemory(word), testByte);
+            ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister); 
+        }
+    }
 }
 TEST_F(CPU_OP_TEST, OP_91)                  // [WORD[nn]+y]=A
 {
-
+    for (int i = 2; i < 0xFF; i++)
+    {
+        for (int j = 0x0100; j < 0x1FFF; j++)
+        {
+            cpu.resetState();
+            cpu.setMemory(0x0000, 0x91);
+            uint8_t previousStatusRegister = cpu.processStatusRegister;
+            testByte = 0xAC;
+            address = i;
+            cpu.registerY = 0x01;
+            word = j;
+            cpu.registerA = testByte;
+            cpu.setMemory(0x0001, address);
+            cpu.setMemory(address + 1, (word >> 8u));
+            cpu.setMemory(address , word);
+            cpu.Cycle();
+            ASSERT_EQ(cpu.readMemory(word + cpu.registerY), testByte);
+            ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister); 
+        }
+    }
 }
 TEST_F(CPU_OP_TEST, OP_86)                  // [nn]=X
 {
-
+    for (int i = 1; i < 256; i++)
+    {
+        cpu.resetState();
+        cpu.setMemory(0x0000, 0x86);
+        uint8_t previousStatusRegister = cpu.processStatusRegister;
+        testByte = 0xAC;
+        cpu.registerX = testByte;
+        address = i;
+        cpu.setMemory(0x0001, address);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.readMemory(address), testByte);
+        ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+    }
 }
 TEST_F(CPU_OP_TEST, OP_96)                  // [nn+Y]=X
 {
-
+    for (int i = 1; i < 256; i++)
+    {
+        for (int j = 1; j < 256; j++)
+        {
+            if( (i + j) % 0x100 > 1)
+            {
+                cpu.resetState();
+                cpu.setMemory(0x0000, 0x96);
+                uint8_t previousStatusRegister = cpu.processStatusRegister;
+                testByte = 0xAC;
+                cpu.registerX = testByte;
+                cpu.registerY = j;
+                address = i;
+                cpu.setMemory(0x0001, address);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.readMemory(address + cpu.registerY), testByte);
+                ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+            }
+        }
+    }
 }
 TEST_F(CPU_OP_TEST, OP_8E)                  // [nnnn]=X
 {
-
+    for (int i = 3; i < 0x1FFF; i++)
+    {
+        cpu.resetState();
+        cpu.setMemory(0x0000, 0x8E);
+        uint8_t previousStatusRegister = cpu.processStatusRegister;
+        testByte = 0xAC;
+        cpu.registerX = testByte;
+        address16 = i;
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.Cycle();
+        ASSERT_EQ(cpu.readMemory(address16), testByte);
+        ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+    }
 }
 TEST_F(CPU_OP_TEST, OP_84)                  // [nn]=Y
 {
-
+    for (int i = 1; i < 256; i++)
+    {
+        cpu.resetState();
+        cpu.setMemory(0x0000, 0x84);
+        uint8_t previousStatusRegister = cpu.processStatusRegister;
+        testByte = 0xAC;
+        cpu.registerY = testByte;
+        address = i;
+        cpu.setMemory(0x0001, address);
+        cpu.Cycle();
+        ASSERT_EQ(cpu.readMemory(address), testByte);
+        ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+    }
 }
 TEST_F(CPU_OP_TEST, OP_94)                  // [nn+X]=Y
 {
-
+    for (int i = 1; i < 256; i++)
+    {
+        for (int j = 1; j < 256; j++)
+        {
+            if( (i + j) % 0x100 > 1)
+            {
+                cpu.resetState();
+                cpu.setMemory(0x0000, 0x94);
+                uint8_t previousStatusRegister = cpu.processStatusRegister;
+                testByte = 0xAC;
+                cpu.registerY = testByte;
+                cpu.registerX = j;
+                address = i;
+                cpu.setMemory(0x0001, address);
+                cpu.Cycle();
+                ASSERT_EQ(cpu.readMemory(address + cpu.registerX), testByte);
+                ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+            }
+        }
+    }
 }
 TEST_F(CPU_OP_TEST, OP_8C)                  // [nnnn]=Y
 {
-
+    for (int i = 3; i < 0x1FFF; i++)
+    {
+        cpu.resetState();
+        cpu.setMemory(0x0000, 0x8C);
+        uint8_t previousStatusRegister = cpu.processStatusRegister;
+        testByte = 0xAC;
+        cpu.registerY = testByte;
+        address16 = i;
+        cpu.setMemory(0x0001, address16);
+        cpu.setMemory(0x0002, (address16 >> 8u));
+        cpu.Cycle();
+        ASSERT_EQ(cpu.readMemory(address16), testByte);
+        ASSERT_EQ(cpu.processStatusRegister, previousStatusRegister);
+    }
 }
 
 // Push/Pull
