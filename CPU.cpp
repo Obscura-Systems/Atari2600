@@ -624,7 +624,7 @@ void CPU::OP_8C()
 // PHA: Push A. No Flags
 void CPU::OP_48()
 {
-    uint8_t address = (stackPointer + 0x0100);
+    uint16_t address = (stackPointer + 0x0100);
     memory[address] = registerA;
     --stackPointer;
     ++programCounter;
@@ -2053,7 +2053,8 @@ void CPU::OP_10()
 {
     if ((processStatusRegister & 0b10000000) == 0x00)
     {
-        programCounter += memory[programCounter + 1];
+        int8_t newPC = programCounter + memory[programCounter + 1];
+        programCounter = newPC;
     }
     else
     {
@@ -2066,7 +2067,8 @@ void CPU::OP_30()
 {
     if ((processStatusRegister & 0b10000000) == 0x80)
     {
-        programCounter += memory[programCounter + 1];
+        int8_t newPC = programCounter + memory[programCounter + 1];
+        programCounter = newPC;
     }
     else
     {
@@ -2079,7 +2081,8 @@ void CPU::OP_50()
 {
     if ((processStatusRegister & 0b01000000) == 0x00)
     {
-        programCounter += memory[programCounter + 1];
+        int8_t newPC = programCounter + memory[programCounter + 1];
+        programCounter = newPC;
     }
     else
     {
@@ -2092,7 +2095,8 @@ void CPU::OP_70()
 {
     if ((processStatusRegister & 0b01000000) == 0x40)
     {
-        programCounter += memory[programCounter + 1];
+        int8_t newPC = programCounter + memory[programCounter + 1];
+        programCounter = newPC;
     }
     else
     {
@@ -2105,7 +2109,8 @@ void CPU::OP_90()
 {
     if ((processStatusRegister & 0b00000001) == 0x00)
     {
-        programCounter += memory[programCounter + 1];
+        int8_t newPC = programCounter + memory[programCounter + 1];
+        programCounter = newPC;
     }
     else
     {
@@ -2118,7 +2123,8 @@ void CPU::OP_B0()
 {
     if ((processStatusRegister & 0b00000001) == 0x01)
     {
-        programCounter += memory[programCounter + 1];
+        int8_t newPC = programCounter + memory[programCounter + 1];
+        programCounter = newPC;
     }
     else
     {
@@ -2131,7 +2137,8 @@ void CPU::OP_D0()
 {
     if ((processStatusRegister & 0b00000010) == 0x00)
     {
-        programCounter += memory[programCounter + 1];
+        int8_t newPC = programCounter + memory[programCounter + 1];
+        programCounter = newPC;
     }
     else
     {
@@ -2144,7 +2151,8 @@ void CPU::OP_F0()
 {
         if ((processStatusRegister & 0b00000010) == 0x02)
     {
-        programCounter += memory[programCounter + 1];
+        int8_t newPC = programCounter + memory[programCounter + 1];
+        programCounter = newPC;
     }
     else
     {
